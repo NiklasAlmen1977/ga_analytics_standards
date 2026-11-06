@@ -1,0 +1,555 @@
+metadata:
+  name: "Group Analytics Power BI Standards"
+  owner: "Group Analytics"
+  version: "1.4.0"
+  status: "draft"
+  domain: "Power BI"
+
+# enforcement:
+#   blocking - fixed, or an approved and documented exception (only where exception_allowed is
+#              true, STD_DOCUMENT_EXCEPTIONS), before the pull request is merged to main.
+#   warning  - should be met. Deviations are listed in the pull request.
+# Tools never stop the developer: the checks report, the pull request reviewer decides.
+# This header is the one definition of blocking and warning; other files refer to it.
+# BPA rules use the matching Tabular Editor severity: blocking = 3 (error), warning = 2 (warning).
+
+standards:
+
+  # ---- Template
+
+  - id: "STD_TEMPLATE_FIRST"
+    name: "New reports and models start from the template"
+    principle_id: "P001"
+    description: "A new report or semantic model starts as a copy of the PBIP template in ga_templates_pbi, which carries the standard pages, header, footer, environment card and metadata tables."
+    applies_to: "report"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  # ---- Naming and business-friendly model
+
+  - id: "STD_TABLE_BUSINESS_FRIENDLY_NAMES"
+    name: "Tables must use business-friendly names"
+    principle_id: "P002"
+    description: "Table names should describe the business concept and should not be named after source-system tables unless that name is meaningful to business users."
+    applies_to: "tables"
+    enforcement: "warning"
+    validation: "manual_or_bpa"
+    bpa_candidate: true
+    exception_allowed: true
+
+  - id: "STD_TABLE_NO_DIM_FACT_PREFIX"
+    name: "Tables must not use dim or fact prefixes"
+    principle_id: "P002"
+    description: "Table names should not expose technical dimensional modeling prefixes such as dim, fact, fct, d, or f."
+    applies_to: "tables"
+    enforcement: "blocking"
+    validation: "manual_or_bpa"
+    bpa_candidate: true
+    exception_allowed: true
+
+  - id: "STD_TABLE_FACT_PLURAL_ASTERISK"
+    name: "Fact tables are plural and end with *"
+    principle_id: "P002"
+    description: "Fact tables have a plural business name in Title Case and end with * directly after the name (for example Sales*, GL Balance Details*), so users see that the table is a fact table. This is the model standard that makes the optional * in the naming conventions mandatory. The check finds fact tables as tables on the many side of a relationship and never on the one side; plural is checked by hand."
+    applies_to: "tables"
+    enforcement: "warning"
+    validation: "manual_or_bpa"
+    bpa_candidate: true
+    exception_allowed: true
+
+  - id: "STD_OBJECT_NAMES_NO_LEADING_TRAILING_SPACES"
+    name: "Object names must not have leading or trailing spaces"
+    principle_id: "P010"
+    description: "Tables, columns, measures, and other model objects must not contain leading or trailing spaces in their names."
+    applies_to: "model_objects"
+    enforcement: "blocking"
+    validation: "bpa"
+    bpa_candidate: true
+    exception_allowed: false
+
+  # ---- Model structure and relationships
+
+  - id: "STD_STAR_SCHEMA_DEFAULT"
+    name: "Models should follow star schema by default"
+    principle_id: "P003"
+    description: "Semantic models should be designed as clear star schemas unless a documented exception exists. Snowflaked dimensions are flattened into one dimension per business entity."
+    applies_to: "model"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_AVOID_COMPLEX_RELATIONSHIPS"
+    name: "Relationships must be one-to-many and single-direction"
+    principle_id: "P011"
+    description: "Relationships are one-to-many with single-direction filtering from the dimension to the fact. Many-to-many relationships are replaced by a proper dimension. Bi-directional or many-to-many relationships need a documented exception."
+    applies_to: "relationships"
+    enforcement: "blocking"
+    validation: "manual_or_bpa"
+    bpa_candidate: true
+    exception_allowed: true
+
+  - id: "STD_RELATIONSHIP_COLUMNS_INTEGER_WHERE_POSSIBLE"
+    name: "Relationship columns should use integer data types where possible"
+    principle_id: "P011"
+    description: "Relationship columns should normally use integer data types for better modeling quality and performance."
+    applies_to: "relationships"
+    enforcement: "warning"
+    validation: "manual_or_bpa"
+    bpa_candidate: true
+    exception_allowed: true
+
+  - id: "STD_MARK_DATE_TABLES"
+    name: "Date tables must be explicit and marked"
+    principle_id: "P003"
+    description: "The model has one Calendar table, built from the template or the Calendar snippet, marked as date table. Auto date/time is turned off."
+    applies_to: "tables"
+    enforcement: "blocking"
+    validation: "manual_or_bpa"
+    bpa_candidate: true
+    exception_allowed: false
+
+  - id: "STD_SINGLE_DATE_DIMENSION"
+    name: "Use one date dimension for all date roles"
+    principle_id: "P011"
+    description: "Different date roles (for example order, shipping and delivery date) use the one Calendar table: one active relationship and inactive relationships activated with USERELATIONSHIP in measures. Separate calendar tables per date role are not used."
+    applies_to: "model"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_SPLIT_DATE_AND_TIME"
+    name: "Date and time should be split where appropriate"
+    principle_id: "P011"
+    description: "Datetime columns with time values should be split from date where the time component is not needed, to reduce cardinality and improve performance."
+    applies_to: "columns"
+    enforcement: "warning"
+    validation: "bpa"
+    bpa_candidate: true
+    exception_allowed: true
+
+  # ---- Columns and data types
+
+  - id: "STD_HIDE_TECHNICAL_KEY_COLUMNS"
+    name: "Technical columns must be hidden"
+    principle_id: "P004"
+    description: "Technical columns such as surrogate keys, foreign keys and helper columns are hidden from report authors."
+    applies_to: "columns"
+    enforcement: "blocking"
+    validation: "bpa"
+    bpa_candidate: true
+    exception_allowed: true
+
+  - id: "STD_REMOVE_UNUSED_COLUMNS"
+    name: "Columns that are not used must not be loaded"
+    principle_id: "P010"
+    description: "Columns that are not used in relationships, hierarchies, sort by, DAX or reports are removed in Power Query instead of being loaded and hidden."
+    applies_to: "columns"
+    enforcement: "warning"
+    validation: "bpa"
+    bpa_candidate: true
+    exception_allowed: true
+
+  - id: "STD_DISABLE_SUMMARIZATION_ON_RELATIONSHIP_COLUMNS"
+    name: "Relationship columns must not summarize"
+    principle_id: "P005"
+    description: "Columns used in relationships should have summarization disabled to avoid accidental aggregation."
+    applies_to: "columns"
+    enforcement: "blocking"
+    validation: "bpa"
+    bpa_candidate: true
+    exception_allowed: false
+
+  - id: "STD_EFFICIENT_DATA_TYPES"
+    name: "Use efficient data types"
+    principle_id: "P011"
+    description: "Use whole numbers where possible, with a thousand separator format. Use fixed decimal (currency) instead of decimal (floating point) when four decimals are enough."
+    applies_to: "columns"
+    enforcement: "warning"
+    validation: "manual_or_bpa"
+    bpa_candidate: true
+    exception_allowed: true
+
+  - id: "STD_SORT_BY_AND_DATA_CATEGORY"
+    name: "Apply sort by column and data categories"
+    principle_id: "P002"
+    description: "Text columns with a natural order (months, weekdays, periods) have a sort by column. Columns with geography or web content (country, city, URL, image URL) have the right data category."
+    applies_to: "columns"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  # ---- Measures and documentation
+
+  - id: "STD_EXPLICIT_MEASURES_REQUIRED"
+    name: "Business calculations must be explicit measures"
+    principle_id: "P005"
+    description: "Business calculations are implemented as explicit measures. Implicit measures are discouraged in the model settings."
+    applies_to: "measures"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_VISIBLE_MEASURES_HAVE_DESCRIPTIONS"
+    name: "Visible measures must have descriptions"
+    principle_id: "P006"
+    description: "Visible measures have descriptions that explain the business meaning, to improve reuse, self-service, onboarding, and maintenance."
+    applies_to: "measures"
+    enforcement: "blocking"
+    validation: "bpa"
+    bpa_candidate: true
+    exception_allowed: false
+
+  - id: "STD_VISIBLE_TABLES_HAVE_DESCRIPTIONS"
+    name: "Visible tables should have descriptions"
+    principle_id: "P006"
+    description: "Visible tables have a description that explains the business entity or process they hold."
+    applies_to: "tables"
+    enforcement: "warning"
+    validation: "bpa"
+    bpa_candidate: true
+    exception_allowed: true
+
+  - id: "STD_MEASURES_USE_DISPLAY_FOLDERS"
+    name: "Measures should be organized in display folders"
+    principle_id: "P010"
+    description: "Measures are organized in display folders and subfolders that start with a dot (for example .Base and .Base\\.Time intelligence) in the __Metrics table, to make the field list easier to use."
+    applies_to: "measures"
+    enforcement: "warning"
+    validation: "manual_or_bpa"
+    bpa_candidate: true
+    exception_allowed: true
+
+  - id: "STD_DOCUMENT_MODEL_OWNER_AND_REFRESH"
+    name: "Owner, validator and refresh status must be documented"
+    principle_id: "P006"
+    description: "Report information (_Report Info) states the report owner, the validator or developer responsible and the refresh frequency, and the Refresh status measure shows the last loaded date."
+    applies_to: "documentation"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: false
+
+  - id: "STD_DOCUMENT_DATA_SOURCES_AND_LINEAGE"
+    name: "Data sources and lineage should be documented"
+    principle_id: "P006"
+    description: "Data sources, how they are authenticated and the lineage from source to report are documented in docs/<semantic model name>.md in the project repository, following docs/templates/data-product-documentation.md (with warnings and things to consider), and later on a wiki page per semantic model. The documentation structure in Confluence is still being set up."
+    applies_to: "documentation"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_DOCUMENT_EXCEPTIONS"
+    name: "Exceptions must be documented"
+    principle_id: "P009"
+    description: "Allowed exceptions must be documented with a clear reason and owner."
+    applies_to: "governance"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: false
+
+  # ---- Power Query
+
+  - id: "STD_PQ_QUERY_GROUPS_AND_PREFIXES"
+    name: "Power Query uses the standard query groups and prefixes"
+    principle_id: "P016"
+    description: "Queries are organised in the template's query groups, and the group decides the prefix: '1. Parameters' - p_<name> (for example p_sharepoint_site_root_path); '2. Functions' - fn_<purpose> (for example fn_generate_date_dimension; the same pattern as SQL functions, with a verb first); '3. Source' - src_<source>_<entity>, one entry point per source with credentials, path and data types (for example src_navision_customer); '4. Stage' - stg_<name>, where the name is the data source name or a clear combination, for cleansing, joins and preparing the star schema (for example stg_dim_customer); '5. Load to Data Model' - no prefix, the final business name in Title Case, in the subgroups Fact Tables, Dimension Tables and Disconnected Tables (for example Customer, Sales*). Only queries in '5. Load to Data Model' are loaded to the model."
+    applies_to: "power_query"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_PQ_PARAMETERS_FOR_CONNECTIONS"
+    name: "Connections and environment values must use parameters"
+    principle_id: "P016"
+    description: "Source paths, server names, site URLs and other environment-related values are Power Query parameters, so a source or environment change is made in one place."
+    applies_to: "power_query"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: false
+
+  - id: "STD_PQ_DATA_TYPES_AT_SOURCE"
+    name: "Set data types in the source queries"
+    principle_id: "P016"
+    description: "Data types are set in the 3 Source queries, so later steps and the model work with correct types."
+    applies_to: "power_query"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_PQ_REFERENCE_NOT_DUPLICATE"
+    name: "Reference queries instead of duplicating them"
+    principle_id: "P016"
+    description: "Queries that build on another query reference it instead of duplicating its steps, so the logic exists in one place."
+    applies_to: "power_query"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_PQ_NAMED_AND_COMMENTED_STEPS"
+    name: "Power Query steps should be renamed and commented"
+    principle_id: "P016"
+    description: "Applied steps are named Verb_Object (an imperative verb and what the step works on, words capitalised and separated by underscores, no spaces), for example Select_Columns, Filter_Active_Rows and Change_Column_Types. The first step is Source. Comments explain why a stage or step exists. Details in code-style.yaml."
+    applies_to: "power_query"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_PQ_DATA_QUALITY_CHECKS"
+    name: "Validate merges and data quality in Power Query"
+    principle_id: "P008"
+    description: "Merges are validated (unmatched keys, duplicated rows) and known data quality issues are checked in Stage. Issues are reported to the source owner and fixed at the source where possible."
+    applies_to: "power_query"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  # ---- Code style (see code-style.yaml)
+
+  - id: "STD_DAX_CODE_STYLE"
+    name: "DAX code should follow the code style"
+    principle_id: "P017"
+    description: "DAX follows the DAX Formatter long-line style: functions in upper case, a space inside function parentheses, one argument per line when a call does not fit on one line, and VAR and RETURN at the start of the line. Variables use the _v_ prefix with a descriptive snake_case name, and a multi-stage result is returned as _v_result. Comments use //, explain why, and commented-out code is removed before merge. Details in code-style.yaml."
+    applies_to: "measures"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_PQ_CODE_STYLE"
+    name: "Power Query M code should follow the code style"
+    principle_id: "P017"
+    description: "Power Query M is written as one let ... in block with one step per line or block, function arguments and long lists on separate lines indented 4 spaces, explicit types for added or changed columns, a comment block per logical stage, and a description on every query that states the source, the purpose and whether it is loaded. Details in code-style.yaml."
+    applies_to: "power_query"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  # ---- Ways of working and sharing
+
+  - id: "STD_SERVICE_ACCOUNTS_FOR_CONNECTIONS"
+    name: "Shared content must use service accounts or service principals"
+    principle_id: "P013"
+    description: "Data source connections, scheduled refresh and publishing of shared content use the domain's service account or service principal, never a personal account."
+    applies_to: "platform"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: false
+
+  - id: "STD_SHARE_FROM_DOMAIN_WORKSPACE"
+    name: "Content is shared from the domain workspaces"
+    principle_id: "P013"
+    description: "My workspace is for development only. Content that others use is published to the domain's DEV, ACC and PRD workspaces and promoted between them."
+    applies_to: "platform"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: false
+
+  - id: "STD_CONSUME_THROUGH_APPS"
+    name: "End users consume content through Power BI apps"
+    principle_id: "P014"
+    description: "End users get access through the domain's Power BI app and app audiences rather than the workspace viewer role."
+    applies_to: "platform"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_CLOUD_DATA_SOURCES"
+    name: "Store data sources in the cloud"
+    principle_id: "P015"
+    description: "Data sources are stored in cloud services (data platform, SharePoint, OneDrive) to avoid on-premises gateways."
+    applies_to: "platform"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_REUSE_EXISTING_SEMANTIC_MODELS"
+    name: "Reuse existing semantic models and refined data"
+    principle_id: "P014"
+    description: "Before building a new model, follow the decision ladder: use an existing semantic model as-is with a thin report; otherwise start from the business process (fact, dimensions, grain), use refined data and common dimensions first, check the grain when combining domains, and use a composite model only when needed."
+    applies_to: "solution_design"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_SPLIT_MODEL_AND_REPORT"
+    name: "Split semantic model and report"
+    principle_id: "P014"
+    description: "The semantic model and the reports are separate items (thin reports connected to a shared semantic model), so each has its own lifecycle."
+    applies_to: "solution_design"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_VERSION_CONTROL_PBIP"
+    name: "All Power BI work must be version controlled as PBIP"
+    principle_id: "P007"
+    description: "Power BI work is saved as PBIP with the PBIR report format, stored in Git with a README and .gitignore, developed in one branch per ticket and merged to main through a reviewed pull request."
+    applies_to: "version_control"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: false
+
+  # ---- Report design (see report-design.yaml)
+
+  - id: "STD_REPORT_APPROVED_THEME"
+    name: "Reports must use the approved Vitrolife theme"
+    principle_id: "P012"
+    description: "Reports use the Vitrolife theme from the template (report-design/Vitrolife_theme.json). Colours and fonts come from the theme and are not overridden per visual."
+    applies_to: "report"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_REPORT_CANVAS_AND_LAYOUT"
+    name: "Report pages must follow the standard canvas and layout"
+    principle_id: "P012"
+    description: "Pages are 1280 x 720 and follow the layout in report-design.yaml: title top left, period slicer and filter pane button top right, KPI row, content area on a 16 px grid, with the same 32 px gap and aligned edges for stacked visuals, padding 20 px with a background and 0 without, the environment (DEV, TEST, ACC) at the top centre, an info line under the title (message, instructions) and one footer line with the user, the selected period and the refresh status. The information and filter pane buttons keep their standard positions. Every table and matrix shows all its columns without horizontal scrolling: explicit column widths that fit the visual, word wrap on, no Grow to fit."
+    applies_to: "report"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_REPORT_DEFINITION_PAGE"
+    name: "Reports must have a Definition page"
+    principle_id: "P012"
+    description: "Every report has a Definition page with report information from _Report Info and measure definitions from _Metric Info. It is the first page; a start page comes right after it (STD_REPORT_LANDING_AND_START_PAGE). Every page links to it."
+    applies_to: "report"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: false
+
+  - id: "STD_REPORT_LANDING_AND_START_PAGE"
+    name: "Reports must open on the right page"
+    principle_id: "P012"
+    description: "An analytics report opens on Overview (landing page). A semantic model only (sm), whose report only explains the model, and a validation report open on their start page. The start page is called 'Welcome' (a validation report may call it 'What can I find in this report?'); it explains what to expect and what to think about, how to ask for access, and links to the other pages with a page navigator sized to the number of pages. It comes right after the Definition page. For a semantic model only the Welcome page is required and, when the model has row-level security, shows the signed-in user and what they have access to. An analytics report has a Welcome page too (the template has one), but opens on Overview."
+    applies_to: "report"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_REPORT_VALIDATION_AND_DATA_QUALITY_PAGES"
+    name: "Reports should have a Validation page, and a Data quality page when issues are known"
+    principle_id: "P009"
+    description: "Reports have a Validation page with a detailed table to check the numbers against the source. A Data quality page is added only when a data quality issue has been found; it shows the known issues (for example unmatched keys or missing values) and the source owner to contact."
+    applies_to: "report"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_REPORT_HIDE_DEVELOPMENT_PAGES"
+    name: "Development pages must be removed or hidden"
+    principle_id: "P010"
+    description: "Pages used for internal validation or development are removed or hidden before the report is published to ACC or PRD."
+    applies_to: "report"
+    enforcement: "blocking"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: false
+
+  - id: "STD_REPORT_MINIMAL_SLICERS"
+    name: "Keep slicers to a minimum"
+    principle_id: "P012"
+    description: "Each page has at most 1-2 slicers: the period slicer, plus one more only if it is really needed. Other filtering uses the filter pane, and visuals that show something useful and also filter the page through cross-filtering. Fewer slicers make reports easier to use on mobile phones."
+    applies_to: "report"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_REPORT_FILTERS_IN_FILTER_PANE"
+    name: "Filters belong in the filter pane"
+    principle_id: "P012"
+    description: "Filters that are not slicers on the page are placed in the filter pane, grouped and in a clear order. Visual-level filters are hidden in the filter pane."
+    applies_to: "report"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_REPORT_BOOKMARKS_FILTER_PANE_ONLY"
+    name: "Avoid bookmarks except the filter pane button"
+    principle_id: "P012"
+    description: "Bookmarks are only used for the button that shows the filter pane. Other navigation uses page navigation and buttons."
+    applies_to: "report"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_REPORT_TAB_ORDER_AND_FOCUS"
+    name: "Pages have a logical tab order and a limited number of topics"
+    principle_id: "P012"
+    description: "The tab order follows the reading order (header, KPI row, content, footer) so keyboard and screen reader users can follow the page. Each page answers a limited number of questions; split a page that tries to cover too many topics."
+    applies_to: "report"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_REPORT_PIE_MAX_FIVE_CATEGORIES"
+    name: "Pie and donut charts must have at most 5 categories"
+    principle_id: "P012"
+    description: "Pie and donut charts are only used for parts of a whole with at most 5 categories. With more than 5 categories, use a bar chart sorted by value."
+    applies_to: "visuals"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_REPORT_GUIDED_SELECTIONS"
+    name: "Required selections are numbered steps with an instruction"
+    status: "deprecated"   # GA-534: came from the GA-546 validation report, not a standard for analytics reports. Remove in a later release.
+    principle_id: "P012"
+    description: "Deprecated. Do not apply."
+    applies_to: "report"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_REPORT_BUSINESS_TERMS"
+    name: "Report texts use business terms, not platform terms"
+    principle_id: "P004"
+    description: "Titles, subtitles, labels, instructions and visible measure descriptions use business terms. Platform terms such as bronze, silver, gold, lakehouse or view are not shown to report users."
+    applies_to: "report"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true
+
+  - id: "STD_REPORT_CONDITIONAL_FORMATTING_MEASURES"
+    name: "Conditional formatting must use the _cf_ measures"
+    principle_id: "P012"
+    description: "Good, bad and neutral colours come from the _cf_ measures in the _Helpers table (the same values as the theme's good, bad and neutral colours) instead of colour codes typed into visuals."
+    applies_to: "visuals"
+    enforcement: "warning"
+    validation: "manual"
+    bpa_candidate: false
+    exception_allowed: true

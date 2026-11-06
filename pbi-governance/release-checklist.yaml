@@ -1,0 +1,307 @@
+metadata:
+  name: "Group Analytics Power BI Release Checklist"
+  owner: "Group Analytics"
+  version: "1.4.0"
+  status: "draft"
+  domain: "Power BI"
+
+# enforcement: blocking when any referenced standard is blocking (definition in the header of standards.yaml).
+# gate: pr      - checked in the finishing step, before the pull request is merged.
+#       publish - confirmed when publishing to the workspace (after the merge).
+
+release_checklist:
+  model:
+    - id: "CHK_MODEL_STAR_SCHEMA"
+      text: "Model follows a star schema, or the exception is documented."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_STAR_SCHEMA_DEFAULT"
+
+    - id: "CHK_MODEL_RELATIONSHIPS"
+      text: "Relationships are one-to-many and single-direction, or the exception is documented."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_AVOID_COMPLEX_RELATIONSHIPS"
+        - "STD_RELATIONSHIP_COLUMNS_INTEGER_WHERE_POSSIBLE"
+
+    - id: "CHK_MODEL_CALENDAR"
+      text: "One Calendar table is marked as date table, auto date/time is off, and date roles use USERELATIONSHIP."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_MARK_DATE_TABLES"
+        - "STD_SINGLE_DATE_DIMENSION"
+
+    - id: "CHK_MODEL_TECHNICAL_COLUMNS_HIDDEN"
+      text: "Technical columns are hidden."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_HIDE_TECHNICAL_KEY_COLUMNS"
+
+    - id: "CHK_MODEL_RELATIONSHIP_COLUMNS_NO_SUMMARIZATION"
+      text: "Key, ID, and relationship columns do not summarize."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_DISABLE_SUMMARIZATION_ON_RELATIONSHIP_COLUMNS"
+
+    - id: "CHK_MODEL_UNUSED_COLUMNS_REMOVED"
+      text: "Columns that are not used are removed, not only hidden."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_REMOVE_UNUSED_COLUMNS"
+
+    - id: "CHK_MODEL_DATA_TYPES"
+      text: "Data types are efficient: whole numbers where possible, fixed decimal instead of decimal, date and time split."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_EFFICIENT_DATA_TYPES"
+        - "STD_SPLIT_DATE_AND_TIME"
+
+  dax:
+    - id: "CHK_DAX_EXPLICIT_MEASURES"
+      text: "Business logic is in explicit measures and has been validated against a known source."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_EXPLICIT_MEASURES_REQUIRED"
+
+    - id: "CHK_DAX_VISIBLE_MEASURES_DESCRIBED"
+      text: "Visible measures have business descriptions."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_VISIBLE_MEASURES_HAVE_DESCRIPTIONS"
+
+    - id: "CHK_DAX_MEASURES_ORGANIZED"
+      text: "Measures are organized in dot-prefixed display folders in __Metrics."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_MEASURES_USE_DISPLAY_FOLDERS"
+
+    - id: "CHK_DAX_CODE_STYLE"
+      text: "DAX follows code-style.yaml: formatted, _v_ variables with descriptive names, // comments that explain why, no commented-out code."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_DAX_CODE_STYLE"
+
+  usability:
+    - id: "CHK_USABILITY_NAMES"
+      text: "Table, column and measure names are business-friendly and follow the naming conventions; fact tables are plural and end with * (Sales*)."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_TABLE_BUSINESS_FRIENDLY_NAMES"
+        - "STD_TABLE_NO_DIM_FACT_PREFIX"
+        - "STD_TABLE_FACT_PLURAL_ASTERISK"
+        - "STD_OBJECT_NAMES_NO_LEADING_TRAILING_SPACES"
+
+    - id: "CHK_USABILITY_SORT_AND_CATEGORY"
+      text: "Sort by column and data categories are applied."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_SORT_BY_AND_DATA_CATEGORY"
+
+    - id: "CHK_USABILITY_TABLES_DESCRIBED"
+      text: "Visible tables have descriptions."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_VISIBLE_TABLES_HAVE_DESCRIPTIONS"
+
+  power_query:
+    - id: "CHK_PQ_STRUCTURE"
+      text: "Queries are in the standard query groups with the p_, fn_, src_ and stg_ prefixes; only 5 Load to Data Model is loaded."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_PQ_QUERY_GROUPS_AND_PREFIXES"
+
+    - id: "CHK_PQ_PARAMETERS"
+      text: "Connections and environment values use parameters; nothing environment-specific is hard-coded."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_PQ_PARAMETERS_FOR_CONNECTIONS"
+
+    - id: "CHK_PQ_QUALITY"
+      text: "Data types are set in Source, queries are referenced instead of duplicated, steps are named and commented, merges are validated."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_PQ_DATA_TYPES_AT_SOURCE"
+        - "STD_PQ_REFERENCE_NOT_DUPLICATE"
+        - "STD_PQ_NAMED_AND_COMMENTED_STEPS"
+        - "STD_PQ_DATA_QUALITY_CHECKS"
+
+    - id: "CHK_PQ_CODE_STYLE"
+      text: "Power Query M follows code-style.yaml: Verb_Object step names, formatted let ... in blocks, a comment block per stage and a description on every query."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_PQ_CODE_STYLE"
+        - "STD_PQ_NAMED_AND_COMMENTED_STEPS"
+
+  report:
+    - id: "CHK_REPORT_THEME"
+      text: "Report uses the Vitrolife theme without per-visual colour or font overrides."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_REPORT_APPROVED_THEME"
+
+    - id: "CHK_REPORT_LAYOUT"
+      text: "Pages follow the standard canvas and layout (aligned visuals with even gaps, padding 20 px with a background and 0 without, slicers 20 px except at the bottom, one footer line, standard buttons in place, every table and matrix shows all its columns without horizontal scrolling), with a logical tab order and a limited number of topics per page."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_REPORT_CANVAS_AND_LAYOUT"
+        - "STD_REPORT_TAB_ORDER_AND_FOCUS"
+
+    - id: "CHK_REPORT_DEFINITION_PAGE"
+      text: "Definition page is first, is filled in, and is linked from every page."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_REPORT_DEFINITION_PAGE"
+
+    - id: "CHK_REPORT_LANDING_AND_START_PAGE"
+      text: "The report opens on the right page: Overview for an analytics report, the Welcome page (start page) for a semantic model only (sm) and a validation report. The Welcome page comes right after Definition, has a page navigator sized to the number of pages, and explains what to expect and how to ask for access; for a semantic model only it is required and, with row-level security, shows what the signed-in user can see."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_REPORT_LANDING_AND_START_PAGE"
+
+    - id: "CHK_REPORT_VALIDATION_AND_DATA_QUALITY_PAGES"
+      text: "A Validation page is present, and a Data quality page when data quality issues are known."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_REPORT_VALIDATION_AND_DATA_QUALITY_PAGES"
+
+    - id: "CHK_REPORT_DEVELOPMENT_PAGES_HIDDEN"
+      text: "Development and internal validation pages are removed or hidden."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_REPORT_HIDE_DEVELOPMENT_PAGES"
+
+    - id: "CHK_REPORT_FILTERS_AND_BOOKMARKS"
+      text: "At most 1-2 slicers per page, other filters in the filter pane, visual-level filters hidden, and bookmarks only for the filter pane button."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_REPORT_MINIMAL_SLICERS"
+        - "STD_REPORT_FILTERS_IN_FILTER_PANE"
+        - "STD_REPORT_BOOKMARKS_FILTER_PANE_ONLY"
+
+    - id: "CHK_REPORT_BUSINESS_TERMS"
+      text: "Titles, subtitles, instructions and visible measure descriptions use business terms; no bronze, silver, gold or other platform terms."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_REPORT_BUSINESS_TERMS"
+
+    - id: "CHK_REPORT_CHART_CHOICE"
+      text: "Chart types fit the data; no pie or donut chart has more than 5 categories."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_REPORT_PIE_MAX_FIVE_CATEGORIES"
+
+    - id: "CHK_REPORT_CONDITIONAL_FORMATTING"
+      text: "Conditional formatting uses the _cf_ measures."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_REPORT_CONDITIONAL_FORMATTING_MEASURES"
+
+  documentation:
+    - id: "CHK_DOC_MODEL_OWNER"
+      text: "Report owner, developer responsible and refresh frequency are filled in in _Report Info, and Refresh status shows the last loaded date."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_DOCUMENT_MODEL_OWNER_AND_REFRESH"
+
+    - id: "CHK_DOC_SOURCES_AND_LINEAGE"
+      text: "The data product is documented in docs/<semantic model name>.md from the template (sources, authentication, lineage, warnings), and the model has a wiki page."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_DOCUMENT_DATA_SOURCES_AND_LINEAGE"
+
+    - id: "CHK_DOC_EXCEPTIONS"
+      text: "Exceptions to blocking standards are documented with reason and owner, and approved."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_DOCUMENT_EXCEPTIONS"
+
+  platform:
+    - id: "CHK_PLATFORM_TEMPLATE_FIRST"
+      text: "A new report or semantic model started from the PBIP template in ga_templates_pbi, with the standard header, footer and environment card."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_TEMPLATE_FIRST"
+
+    - id: "CHK_PLATFORM_SERVICE_ACCOUNTS"
+      text: "Connections, refresh and publishing use the domain's service account or service principal."
+      enforcement: "blocking"
+      gate: "publish"
+      standard_refs:
+        - "STD_SERVICE_ACCOUNTS_FOR_CONNECTIONS"
+
+    - id: "CHK_PLATFORM_DOMAIN_WORKSPACE"
+      text: "Content is published to the domain workspace (not My workspace) and consumers get access through the app."
+      enforcement: "blocking"
+      gate: "publish"
+      standard_refs:
+        - "STD_SHARE_FROM_DOMAIN_WORKSPACE"
+        - "STD_CONSUME_THROUGH_APPS"
+
+    - id: "CHK_PLATFORM_SOLUTION_DESIGN"
+      text: "Existing semantic models and refined data were considered, model and report are split, and sources are in the cloud."
+      enforcement: "warning"
+      gate: "pr"
+      standard_refs:
+        - "STD_REUSE_EXISTING_SEMANTIC_MODELS"
+        - "STD_SPLIT_MODEL_AND_REPORT"
+        - "STD_CLOUD_DATA_SOURCES"
+
+  validation:
+    - id: "CHK_VALIDATION_TECHNICAL"
+      text: "Internal technical validation completed (model review and BPA)."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs: []
+
+    - id: "CHK_VALIDATION_BUSINESS"
+      text: "Business validation completed by the report owner or validator."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs: []
+
+  version_control:
+    - id: "CHK_VERSION_BRANCH"
+      text: "Changes are saved as PBIP (PBIR) and committed to a feature_<ticketno>_<shortdescription> branch."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_VERSION_CONTROL_PBIP"
+
+    - id: "CHK_VERSION_PR"
+      text: "Pull request opened with the description from the finishing step, linked to the ticket, and reviewed before merge."
+      enforcement: "blocking"
+      gate: "pr"
+      standard_refs:
+        - "STD_VERSION_CONTROL_PBIP"

@@ -1,0 +1,192 @@
+metadata:
+  name: "Group Analytics Power BI Report Design"
+  owner: "Group Analytics"
+  version: "1.3.0"
+  status: "draft"
+  domain: "Power BI"
+  source: "Vitrolife group domain template and theme (ga_templates_pbi)"
+  theme_file: "report-design/Vitrolife_theme.json"
+
+# Detailed design specification for Power BI reports.
+# The enforceable rules are the STD_REPORT_* standards in standards.yaml.
+# Positions are in pixels on the 1280 x 720 canvas, measured from the top-left corner.
+
+theme:
+  name: "Vitrolife theme 1"
+  rule: "Apply the Vitrolife theme from the template. Do not override theme colours or fonts on individual visuals unless a standard below allows it."
+  font_family: "Arial"
+  font_sizes:
+    visual_title: 12
+    header: 12
+    callout_value: 24
+    large_label: 18
+    label: 9
+    data_label: 8
+    legend: 8
+    small_label: 8
+  colours:
+    data_colours_first_five: ["#97B2B3", "#D2CAB9", "#ACC1C2", "#235A81", "#3C7CA6"]
+    text: "#000000"
+    background: "#FFFFFF"
+    secondary_background: "#F1EEE8"
+    accent: "#3C7CA6"
+    foreground_dark: "#235A81"
+    hyperlink: "#235A81"
+    visual_border: "#F5F5F5"
+    table_accent: "#235A81"
+  sentiment_colours:
+    rule: "Use the _cf_ measures in the _Helpers table for good, bad and neutral colours. The theme's good, bad and neutral colours and its data bar colours use the same values."
+    good: "#5F8A66"     # _cf_Good color
+    bad: "#C96A73"      # _cf_Bad color
+    neutral: "#D5C27A"  # _cf_Neutral color
+  visual_container:
+    border: "1 px, #F5F5F5, radius 5"
+    visual_header: "No colour or transparency settings for the header icons on single visuals: the theme gives them a #E6E6E6 background, a dark icon and transparency 0. Content visuals are in front of the info line (higher z-order), so their header icons are drawn on top of it and stay readable."
+    shadow: "Outer, bottom right. The theme switches the shadow off for textboxes, so a textbox with a background sets the shadow (Outer, bottom right) on the visual itself."
+    padding: "A visual with a background has 20 px padding on all sides. A visual without a background has no padding (0). Exception: a slicer without a background has 20 px at the top, left and right and 0 at the bottom; a small text slicer (a 32 px search box) keeps 0."
+    title: "Left aligned, Arial 12, black, white background"
+    axis_titles: "Hidden; the visual title and axis labels explain the axes"
+    legend: "Top, Arial 8, no legend title"
+    data_label_precision: 0
+
+canvas:
+  width: 1280
+  height: 720
+  background: "#FFFFFF"
+  grid: 16             # place and size visuals in multiples of 16 px; the header (title, info line, filter pane button) uses 8 px steps
+  gutter: 32           # space between visuals
+  stacking: "Visuals with a background that are stacked in a column share the same x position and width, and have the same 32 px gap between them."
+  title_margin: 32     # left and top margin for the page title
+  content_margin: 48   # left and right margin for content visuals
+
+page_layout:
+  header:
+    title:
+      visual: "textbox"
+      position: { x: 32, y: 24, width: 536, height: 96 }
+      content: "Report or page title, and a subtitle that says what the page shows and from which table or data (for example DETAILS or AARO EXPORT TABLE)"
+      layer: "Bottom of the page (z-order 0), no background. The info line and the first row of content start inside the lower part of the title box, so the subtitle has room."
+    period_slicer:
+      visual: "slicer (dropdown)"
+      position: { x: 944, y: 0, width: 208, height: 80 }
+      title: "Select period"
+      fields: ["Calendar[Year flag]", "Calendar[Month short]"]
+      pages: "All analysis pages"
+    filter_pane_button:
+      visual: "actionButton"
+      position: { x: 1200, y: 24, width: 48, height: 48 }   # top aligned with the title
+      action: "Bookmark that shows the filter pane"
+      fixed: true       # standard position; never move it
+    environment:
+      visual: "card (new card visual), no background, label, title or padding"
+      position: { x: 576, y: 0, width: 128, height: 32 }
+      measure: "_Environment[Label - Connected environment]"
+      format: "Arial 18, bold, centred, environment text colour"
+      why: "Large and at the top centre so nobody mistakes DEV, TEST or ACC data for production, above the title row so it is never in the way. Empty in PRD, so nothing is shown there."
+    info_line:
+      visual: "card (new card visual), one per page, values side by side, no labels, no title"
+      position: { x: 40, y: 80, width: 1184, height: 32 }   # bottom at 112, where the first row of content starts
+      layer: "In front of the title, behind all content visuals (they have a higher z-order), so the header icons of the content are drawn on top of it"
+      content: "Message left (_Metric Info[Report or semantic model message], bad colour) and instructions right (_Helpers[Label - Instructions], #235A81). Information pages such as Definition have only the message."
+      why: "One aligned line for what the user should notice before reading the page. Without labels nothing is shown when there is no message."
+      length: "Short instructions only (for example Use the slicers · click a visual to filter). Which table or data the page shows goes in the title subtitle, not here."
+      format: "Arial 8, no background, border, shadow or padding"
+      alignment: "First value left-aligned, last value right-aligned, values in between centred, so the line uses the full width."
+  kpi_row:
+    position: { x: 48, y: 112, height: 160 }
+    content: "KPI cards (card visual) with the main measures, optionally with a sparkline"
+  content_area:
+    position: { x: 48, y: 304, width: 1184, height: 352 }
+    without_kpi_row: { x: 48, y: 112, width: 1184, height: 544 }
+    content: "Charts and tables. Align visuals to the grid and keep the 32 px gutter."
+    tables_and_matrices:
+      rule: "Every table and matrix (tableEx, pivotTable) shows all its columns without horizontal scrolling. Give each field an explicit column width; together the widths fit the visual width minus the padding (for example 1184 - 40 = 1144 px). Do not use the column adjustment Grow to fit, turn on word wrap for column headers, row headers and values, and remove column widths for fields that are no longer in the visual (STD_REPORT_CANVAS_AND_LAYOUT)."
+      pbir: "objects.columnWidth: one entry per projected field with selector.metadata = the field's queryRef; columnHeaders, rowHeaders and values: wordWrap true; no columnHeaders.columnAdjustment 'growToFit'."
+      check_after: "Adding, removing or renaming a field in a table or matrix, and copying a visual from the template."
+  footer:
+    definition_button:
+      visual: "actionButton (information icon)"
+      position: { x: 0, y: 680, width: 40, height: 40 }
+      action: "Page navigation to the Definition page"
+      fixed: true       # standard position; never move it
+    footer_line:
+      visual: "card (new card visual), one per page, values side by side"
+      position: { x: 96, y: 684, width: 944, height: 32 }
+      measures: ["_Helpers[Label - Footer user]", "_Helpers[Label - Footer period]", "_Helpers[Label - Footer last date]"]
+      content: "The signed-in user, the selected period and the refresh status (the last date loaded), each with a short label above the value (User, Selected period, Last date). A page that works on another selection shows that selection instead of Period. Report-specific details are not part of the standard footer."
+      format: "Labels Arial 7, values Arial 8 italic, theme text colour; no background, border, shadow or padding"
+      alignment: "First value left-aligned, last value right-aligned, values in between centred; each label follows its value."
+      why: "One compact visual keeps the footer in the same font, size and position on every page, and the labels make it easy to read."
+
+landing_page:   # STD_REPORT_LANDING_AND_START_PAGE (blocking); in PBIR: landingPageName in pages.json
+  analytics_report: "Overview"
+  semantic_model_only: "The start page 'Welcome'"
+  validation_report: "The start page ('Welcome', or 'What can I find in this report?')"
+
+pages:
+  - name: "Definition"
+    required: true
+    order: 1
+    content:
+      - "Report info from _Report Info (owner, refresh frequency, how to request refinements, developer responsible)"
+      - "Report overview and data model description from _Report Info"
+      - "Measure definitions from _Metric Info, with a search slicer on Measure"
+      - "Back button and refresh status"
+  - name: "Welcome (start page; a validation report may call it 'What can I find in this report?')"
+    required: "for a semantic model only; in the template and recommended for every report"
+    order: 2
+    content:
+      - "Title and subtitle: what the report or semantic model is for"
+      - "Welcome card: _Helpers[Welcome user] and _Helpers[Your access] (what the signed-in user can see through row-level security; replace the template placeholder with the RLS dimension, for example the companies), and how to ask for access: a ticket to servicedesk@vitrolifegroup.com, with the manager for approval"
+      - "What to expect and what to think about: a short text box (where the data comes from, what is in and out, how to use it)"
+      - "Page navigator to the other pages, sized to its content: 64 px for the title, subtitle and divider plus 48 px per page (Power BI divides the height evenly over the buttons), so the buttons are neither cut off nor oversized. Resize it whenever a page is added, removed or hidden."
+      - "Info line with the message, environment, footer line and Definition button as on every page"
+  - name: "Overview"
+    required: "for an analytics report (its landing page)"
+    order: "after Welcome"
+    content: ["KPI row", "Main trend and breakdown visuals"]
+  - name: "Details"
+    required: false
+    order: "after Overview"
+    content: ["Detailed comparisons, for example actual vs budget"]
+  - name: "Validation"
+    required: true          # STD_REPORT_VALIDATION_AND_DATA_QUALITY_PAGES (warning)
+    order: "after the analysis pages"
+    content: ["Detailed table used to validate the numbers against the source"]
+  - name: "Data quality"
+    required: "only when a data quality issue has been found"   # STD_REPORT_VALIDATION_AND_DATA_QUALITY_PAGES (warning)
+    order: "after Validation"
+    content: ["Known data issues, for example unmatched keys, missing values or late loads, with the source owner to contact"]
+
+development_pages:
+  rule: "Pages used for internal validation or development are removed or hidden before publishing to ACC or PRD (STD_REPORT_HIDE_DEVELOPMENT_PAGES, blocking)."
+
+filters_and_navigation:
+  slicers:
+    rule: "Keep slicers to a minimum: at most 1-2 per page, the period slicer plus one more only if it is really needed (STD_REPORT_MINIMAL_SLICERS). Use the filter pane for other filters, and visuals that show something useful and also filter the page through cross-filtering."
+    max_per_page: 2
+    why: "Fewer slicers leave room for content and make reports much easier to use on mobile phones."
+    examples_of_filtering_visuals: ["Bar chart by category or region", "Matrix with drill-down", "Line or column chart by period"]
+  filter_pane:
+    rule: "Filters belong in the filter pane, grouped and ordered so users find them (STD_REPORT_FILTERS_IN_FILTER_PANE)."
+    on_page_slicers_allowed_for: ["Period (the standard period slicer)", "One mandatory filter the page cannot be read without"]
+    visual_level_filters: "Hidden in the filter pane"
+  bookmarks:
+    rule: "Only the bookmark that shows the filter pane (STD_REPORT_BOOKMARKS_FILTER_PANE_ONLY). Use page navigation and buttons for other navigation."
+  tab_order:
+    rule: "Tab order follows the reading order: header, KPI row, content area from left to right and top to bottom, footer (STD_REPORT_TAB_ORDER_AND_FOCUS). Decorative shapes and images are left out of the tab order."
+  business_terms:
+    rule: "Titles, subtitles, labels, instructions and visible measure descriptions use business terms. Platform terms such as bronze, silver, gold, lakehouse or view are not shown to report users; say what it is instead, for example 'pre-aggregated export' or 'postings (details)' (STD_REPORT_BUSINESS_TERMS)."
+  topics_per_page:
+    rule: "Each page answers a limited number of questions. When a page needs more than one main topic, split it into more pages."
+
+chart_selection:
+  pie_and_donut:
+    rule: "Use a pie or donut chart only for parts of a whole with at most 5 categories. With more than 5 categories, use a bar chart sorted by value."
+    max_categories: 5
+  # The guidance below is general practice, proposed for Group Analytics. Confirm or adjust it.
+  comparison_over_time: "Line chart, or column chart for few periods"
+  ranking: "Bar chart sorted by value"
+  actual_vs_target: "Bar or column chart with the target as a line or marker, or a table with conditional formatting"
+  exact_values: "Table or matrix"
+  conditional_formatting: "Use the _cf_ measures for colours. Do not type colour codes into visuals."

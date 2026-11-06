@@ -1,0 +1,44 @@
+metadata:
+  name: "Group Analytics Power BI Ways of Working"
+  owner: "Group Analytics"
+  version: "1.0.0"
+  status: "draft"
+  domain: "Power BI"
+
+ways_of_working:
+  environments: "DEV, ACC, PRD (TEST is being retired). Write PRD in documents; snippet values may still say PROD."
+  development_flow:
+    repository_format: "PBIP preferred"
+    branch_strategy: "One branch per ticket"
+    branch_naming_pattern: "feature_<ticketno>_<shortdescription>"   # e.g. feature_GA-612_sales_model
+    pull_request_required: true
+    review_before_merge_required: true
+    deploy_from_main_only: true
+
+  working_practices:
+    - "Start from approved template when available (ga_templates_pbi repository)."
+    - "Work locally in the correct checked-out branch."
+    - "Save and validate changes before commit."
+    - "Use descriptive commit messages."
+    - "Push changes to remote regularly when collaborating."
+    - "Create a pull request to merge into main."
+    - "Link work item or ticket when applicable."
+    - "Keep branches short-lived where possible."
+
+  collaboration:
+    sync_with_main_regularly: true
+    avoid_long_lived_branches: true
+    descriptive_pull_requests_required: true
+    one_active_ticket_branch_preferred: true
+
+  quality_gate:
+    technical_validation_required: true
+    business_validation_required: true
+    documentation_review_required: true
+    release_checklist_required: true
+
+  publishing:
+    publish_changed_projects_only: true
+    publish_on_merge_to_main: true
+    publish_on_pull_request: false
+    changelog_after_publish_required: true

@@ -1,0 +1,355 @@
+metadata:
+  name: "Group Analytics Power BI Rule Mapping"
+  owner: "Group Analytics"
+  version: "1.5.0"
+  status: "draft"
+  domain: "Power BI"
+
+# bpa_rule_id values must match the "ID" field in the referenced BPA file.
+# Every standard in standards.yaml has at least one entry.
+# status: implemented (BPA rule exists), candidate (could become a BPA rule),
+#         not_suitable_for_bpa (manual review; report standards may later get a PBIR check),
+#         deprecated (no longer applied; the standard is removed in a later release).
+# python_check: true - validators/validate_model.py checks (part of) the standard from the TMDL.
+#         The script also evaluates every implemented BPA rule, so a new BPA rule needs a Python
+#         check too (it lists rules without one as "not evaluated").
+
+rule_mappings:
+  - standard_id: "STD_TEMPLATE_FIRST"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_TABLE_BUSINESS_FRIENDLY_NAMES"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "bpa"
+    status: "candidate"
+
+  - standard_id: "STD_TABLE_NO_DIM_FACT_PREFIX"
+    bpa_rule_id: "GA_DIM_TABLE_NO_DIM_PREFIX"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_TABLE_NO_DIM_FACT_PREFIX"
+    bpa_rule_id: "GA_FACT_TABLE_NO_FACT_PREFIX"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_TABLE_FACT_PLURAL_ASTERISK"
+    bpa_rule_id: "GA_FACT_TABLE_ASTERISK_SUFFIX"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_OBJECT_NAMES_NO_LEADING_TRAILING_SPACES"
+    bpa_rule_id: "GA_OBJECT_NAME_NO_LEADING_TRAILING_SPACES"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_STAR_SCHEMA_DEFAULT"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_AVOID_COMPLEX_RELATIONSHIPS"
+    bpa_rule_id: "GA_RELATIONSHIP_SINGLE_DIRECTION"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_AVOID_COMPLEX_RELATIONSHIPS"
+    bpa_rule_id: "GA_RELATIONSHIP_NO_MANY_TO_MANY"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_RELATIONSHIP_COLUMNS_INTEGER_WHERE_POSSIBLE"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "bpa"
+    status: "candidate"
+
+  - standard_id: "STD_MARK_DATE_TABLES"
+    bpa_rule_id: "GA_MODEL_DATE_TABLE_MARKED"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_MARK_DATE_TABLES"
+    bpa_rule_id: "GA_MODEL_NO_AUTO_DATE_TABLES"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_SINGLE_DATE_DIMENSION"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+    python_check: true
+
+  - standard_id: "STD_SPLIT_DATE_AND_TIME"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "bpa"
+    status: "candidate"
+
+  - standard_id: "STD_HIDE_TECHNICAL_KEY_COLUMNS"
+    bpa_rule_id: "GA_TECHNICAL_COLUMNS_SHOULD_BE_HIDDEN"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_REMOVE_UNUSED_COLUMNS"
+    bpa_rule_id: "GA_HIDDEN_UNUSED_COLUMNS_REVIEW"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_DISABLE_SUMMARIZATION_ON_RELATIONSHIP_COLUMNS"
+    bpa_rule_id: "GA_KEY_COLUMNS_NO_SUMMARIZE"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_EFFICIENT_DATA_TYPES"
+    bpa_rule_id: "GA_COLUMN_NO_FLOATING_POINT"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_SORT_BY_AND_DATA_CATEGORY"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_EXPLICIT_MEASURES_REQUIRED"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+    python_check: true
+
+  - standard_id: "STD_VISIBLE_MEASURES_HAVE_DESCRIPTIONS"
+    bpa_rule_id: "GA_MEASURE_DESC_REQUIRED"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_VISIBLE_TABLES_HAVE_DESCRIPTIONS"
+    bpa_rule_id: "GA_TABLE_DESC_RECOMMENDED"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_MEASURES_USE_DISPLAY_FOLDERS"
+    bpa_rule_id: "GA_MEASURE_DISPLAY_FOLDER_REQUIRED"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_MEASURES_USE_DISPLAY_FOLDERS"
+    bpa_rule_id: "GA_MEASURE_DISPLAY_FOLDER_PREFIX"
+    bpa_file: "tabular-editor/bpa/BPARules-base.json"
+    validation_type: "bpa"
+    status: "implemented"
+
+  - standard_id: "STD_DOCUMENT_MODEL_OWNER_AND_REFRESH"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_DOCUMENT_DATA_SOURCES_AND_LINEAGE"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_DOCUMENT_EXCEPTIONS"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_PQ_QUERY_GROUPS_AND_PREFIXES"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+    python_check: true
+
+  - standard_id: "STD_PQ_PARAMETERS_FOR_CONNECTIONS"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_PQ_DATA_TYPES_AT_SOURCE"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_PQ_REFERENCE_NOT_DUPLICATE"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_PQ_NAMED_AND_COMMENTED_STEPS"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_PQ_DATA_QUALITY_CHECKS"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_DAX_CODE_STYLE"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_PQ_CODE_STYLE"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_SERVICE_ACCOUNTS_FOR_CONNECTIONS"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_SHARE_FROM_DOMAIN_WORKSPACE"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_CONSUME_THROUGH_APPS"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_CLOUD_DATA_SOURCES"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REUSE_EXISTING_SEMANTIC_MODELS"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_SPLIT_MODEL_AND_REPORT"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_VERSION_CONTROL_PBIP"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REPORT_APPROVED_THEME"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REPORT_CANVAS_AND_LAYOUT"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REPORT_DEFINITION_PAGE"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REPORT_LANDING_AND_START_PAGE"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REPORT_VALIDATION_AND_DATA_QUALITY_PAGES"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REPORT_HIDE_DEVELOPMENT_PAGES"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REPORT_FILTERS_IN_FILTER_PANE"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REPORT_BOOKMARKS_FILTER_PANE_ONLY"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REPORT_TAB_ORDER_AND_FOCUS"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REPORT_PIE_MAX_FIVE_CATEGORIES"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REPORT_GUIDED_SELECTIONS"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "deprecated"   # GA-534: validation-report layout, not a standard
+
+  - standard_id: "STD_REPORT_BUSINESS_TERMS"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REPORT_CONDITIONAL_FORMATTING_MEASURES"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"
+
+  - standard_id: "STD_REPORT_MINIMAL_SLICERS"
+    bpa_rule_id: null
+    bpa_file: null
+    validation_type: "manual"
+    status: "not_suitable_for_bpa"

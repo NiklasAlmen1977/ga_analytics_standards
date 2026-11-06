@@ -1,0 +1,164 @@
+[
+  {
+    "ID": "GA_MEASURE_DESC_REQUIRED",
+    "Name": "Visible measures must have a description",
+    "Category": "Documentation",
+    "Description": "Visible measures must have a business-friendly description.",
+    "Severity": 3,
+    "Scope": "Measure",
+    "Expression": "not IsHidden and String.IsNullOrWhiteSpace(Description)",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_TABLE_DESC_RECOMMENDED",
+    "Name": "Visible tables should have a description",
+    "Category": "Documentation",
+    "Description": "Visible tables should have a description to support discoverability and governance.",
+    "Severity": 2,
+    "Scope": "Table",
+    "Expression": "not IsHidden and String.IsNullOrWhiteSpace(Description)",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_MEASURE_DISPLAY_FOLDER_REQUIRED",
+    "Name": "Measures must use display folders",
+    "Category": "Usability",
+    "Description": "Measures should be organized in display folders.",
+    "Severity": 2,
+    "Scope": "Measure",
+    "Expression": "String.IsNullOrWhiteSpace(DisplayFolder)",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_MEASURE_DISPLAY_FOLDER_PREFIX",
+    "Name": "Display folders should start with a dot",
+    "Category": "Usability",
+    "Description": "Display folders start with a dot (for example .Base) so they sort above the measures in the table.",
+    "Severity": 2,
+    "Scope": "Measure",
+    "Expression": "not String.IsNullOrWhiteSpace(DisplayFolder) and not DisplayFolder.StartsWith(\".\")",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_KEY_COLUMNS_NO_SUMMARIZE",
+    "Name": "Key or ID columns must not summarize",
+    "Category": "Modeling",
+    "Description": "Columns ending in Key or ID should use SummarizeBy = None.",
+    "Severity": 3,
+    "Scope": "Column",
+    "Expression": "(Name.EndsWith(\"Key\") or Name.EndsWith(\"ID\")) and SummarizeBy <> \"None\"",
+    "FixExpression": "SummarizeBy = AggregateFunction.None",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_TECHNICAL_COLUMNS_SHOULD_BE_HIDDEN",
+    "Name": "Technical columns must be hidden",
+    "Category": "Usability",
+    "Description": "Technical columns such as surrogate keys must be hidden.",
+    "Severity": 3,
+    "Scope": "Column",
+    "Expression": "(Name.ToLower().Contains(\"key\") or Name.ToLower().StartsWith(\"pq_sk_\") or Name.ToLower().StartsWith(\"sk_\")) and not IsHidden and not Table.IsHidden",
+    "FixExpression": "IsHidden = true",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_FACT_TABLE_NO_FACT_PREFIX",
+    "Name": "Tables must not use fact prefix",
+    "Category": "Naming",
+    "Description": "Tables must not use a fact prefix (naming conventions).",
+    "Severity": 3,
+    "Scope": "Table",
+    "Expression": "Name.ToLower().StartsWith(\"fact\")",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_FACT_TABLE_ASTERISK_SUFFIX",
+    "Name": "Fact tables must end with *",
+    "Category": "Naming",
+    "Description": "Fact tables have a plural business name and end with * (for example Sales*), so users see that the table is a fact table (naming conventions). A fact table is on the many side of a relationship and never on the one side. Technical tables starting with _ are left out.",
+    "Severity": 2,
+    "Scope": "Table",
+    "Expression": "not Name.StartsWith(\"_\") and not Name.EndsWith(\"*\") and UsedInRelationships.Any(FromTable.Name == current.Name) and not UsedInRelationships.Any(ToTable.Name == current.Name)",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_DIM_TABLE_NO_DIM_PREFIX",
+    "Name": "Tables must not use dim prefix",
+    "Category": "Naming",
+    "Description": "Tables must not use a dim prefix (naming conventions).",
+    "Severity": 3,
+    "Scope": "Table",
+    "Expression": "Name.ToLower().StartsWith(\"dim\")",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_HIDDEN_UNUSED_COLUMNS_REVIEW",
+    "Name": "Hidden unused columns should be reviewed",
+    "Category": "Performance",
+    "Description": "Hidden columns not used in relationships, hierarchies, sort by, or DAX should be removed in Power Query instead of being loaded.",
+    "Severity": 2,
+    "Scope": "Column",
+    "Expression": "IsHidden and ReferencedBy.Count = 0",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_OBJECT_NAME_NO_LEADING_TRAILING_SPACES",
+    "Name": "Object names must not have leading or trailing spaces",
+    "Category": "Naming",
+    "Description": "Tables, columns, measures and hierarchies must not have leading or trailing spaces in their names.",
+    "Severity": 3,
+    "Scope": "Table, CalculatedTable, Measure, DataColumn, CalculatedColumn, CalculatedTableColumn, Hierarchy",
+    "Expression": "Name.StartsWith(\" \") or Name.EndsWith(\" \")",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_RELATIONSHIP_SINGLE_DIRECTION",
+    "Name": "Relationships must be single-direction",
+    "Category": "Modeling",
+    "Description": "Relationships filter in one direction, from the dimension to the fact. Bi-directional relationships need a documented exception.",
+    "Severity": 3,
+    "Scope": "Relationship",
+    "Expression": "CrossFilteringBehavior == \"BothDirections\"",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_RELATIONSHIP_NO_MANY_TO_MANY",
+    "Name": "Relationships must not be many-to-many",
+    "Category": "Modeling",
+    "Description": "Replace many-to-many relationships with a proper dimension and one-to-many relationships. Exceptions must be documented.",
+    "Severity": 3,
+    "Scope": "Relationship",
+    "Expression": "FromCardinality == \"Many\" and ToCardinality == \"Many\"",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_MODEL_DATE_TABLE_MARKED",
+    "Name": "The model must have a marked date table",
+    "Category": "Modeling",
+    "Description": "The model has a Calendar table marked as date table, with a date key column.",
+    "Severity": 3,
+    "Scope": "Model",
+    "Expression": "Tables.Any(DataCategory == \"Time\" and Columns.Any(IsKey == true and DataType == \"DateTime\")) == false",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_MODEL_NO_AUTO_DATE_TABLES",
+    "Name": "Auto date/time must be turned off",
+    "Category": "Modeling",
+    "Description": "Auto date/time creates a hidden date table per date column. Turn it off and use the Calendar table.",
+    "Severity": 3,
+    "Scope": "Table, CalculatedTable",
+    "Expression": "ObjectTypeName == \"Calculated Table\" and (Name.StartsWith(\"DateTableTemplate_\") or Name.StartsWith(\"LocalDateTable_\"))",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "GA_COLUMN_NO_FLOATING_POINT",
+    "Name": "Avoid decimal (floating point) data types",
+    "Category": "Performance",
+    "Description": "Use whole number, or fixed decimal (currency) when four decimals are enough, instead of decimal (double).",
+    "Severity": 2,
+    "Scope": "DataColumn, CalculatedColumn, CalculatedTableColumn",
+    "Expression": "DataType == \"Double\"",
+    "CompatibilityLevel": 1200
+  }
+]

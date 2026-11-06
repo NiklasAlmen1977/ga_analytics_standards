@@ -1,0 +1,78 @@
+metadata:
+  name: "Group Analytics Power BI Principles"
+  owner: "Group Analytics"
+  version: "1.0.0"
+  status: "draft"
+  domain: "Power BI"
+
+principles:
+  - id: "P001"
+    name: "Template first"
+    description: "Start from approved templates to ensure consistency and reuse."
+    reference: "https://vitrolife-group.ghe.com/group-analytics/ga_templates_pbi"
+
+  - id: "P002"
+    name: "Business-friendly semantic model"
+    description: "Models must be structured and named for business understanding, not source-system convenience."
+
+  - id: "P003"
+    name: "Star schema by default"
+    description: "Prepare semantic models as star schemas unless a documented exception exists."
+
+  - id: "P004"
+    name: "Hide technical complexity"
+    description: "Technical fields, implementation details, surrogate keys, and relationship columns should not be exposed to report authors unless needed."
+
+  - id: "P005"
+    name: "Explicit calculations"
+    description: "Business logic should be implemented through explicit measures, not implicit aggregations."
+
+  - id: "P006"
+    name: "Document important logic"
+    description: "Important measures, tables, and business concepts must be documented to support reuse, onboarding, and maintenance."
+
+  - id: "P007"
+    name: "Version control first"
+    description: "All relevant Power BI development should be structured for version control and collaboration."
+
+  - id: "P008"
+    name: "Optimize upstream when possible"
+    description: "Push transformations, reductions, and data quality fixes upstream when practical and sustainable."
+
+  - id: "P009"
+    name: "Validate before release"
+    description: "Technical, business, and usability validation must be completed before release."
+
+  - id: "P010"
+    name: "Reduce model noise"
+    description: "Avoid exposing unnecessary columns, auto-date tables, technical artifacts, or objects that do not help the user."
+
+  - id: "P011"
+    name: "Performance-aware design"
+    description: "Model design should reduce unnecessary cardinality, avoid avoidable relationship complexity, and use efficient data types where possible."
+
+  - id: "P012"
+    name: "Consistent report design"
+    description: "Reports use the approved theme, page layout and chart choices, so users recognise and read every Group Analytics report in the same way."
+    reference: "pbi-governance/report-design.yaml"
+
+  - id: "P013"
+    name: "Reduce single-person dependency"
+    description: "Solutions keep working when a person is away or leaves: shared accounts and workspaces, version control, documentation and predictable patterns instead of personal setups and clever one-offs."
+
+  - id: "P014"
+    name: "Reuse before you build"
+    description: "Reuse existing semantic models, refined data and common dimensions before building new ones, and choose the simplest pattern (thin report, own model, composite model only when needed). Self-service happens in scoped domain workspaces."
+
+  - id: "P015"
+    name: "Automate as much as possible"
+    description: "Automate refresh, validation, deployment and documentation where possible, and keep data in cloud sources so no manual steps or gateways are needed."
+
+  - id: "P016"
+    name: "Structured Power Query"
+    description: "Power Query follows one structure (parameters, functions, source, stage, load), with the logic in one place, correct data types early and readable, commented steps."
+
+  - id: "P017"
+    name: "Readable, consistent code"
+    description: "DAX and Power Query M code follow one formatting, comment and naming style, so any team member can read, review and maintain it."
+    reference: "pbi-governance/code-style.yaml"

@@ -1,0 +1,330 @@
+createOrReplace
+
+	/// Base connection to the metric business definition list on the Group Analytics metadata SharePoint site.
+	expression src_sharepoint_analytics_metric_business_definition =
+			let
+			    // ----------------------------------
+			    // 1. Source
+			    // ----------------------------------
+			    // Connects to the configured SharePoint metadata site.
+			    Source_SharePointTables =
+			        SharePoint.Tables(
+			            p_analytics_metadata_site_root_path,
+			            [
+			                Implementation = "2.0",
+			                ViewMode = "All"
+			            ]
+			        ),
+			
+			    // ----------------------------------
+			    // 2. Navigation
+			    // ----------------------------------
+			    // Navigates to the specific SharePoint list by list ID.
+			    Navigation_MetricDefinitionsList =
+			        Source_SharePointTables{[Id = "14e8500b-9d75-4c48-8304-bb039467ae06"]}[Items],
+			
+			    // ----------------------------------
+			    // 3. Column selection
+			    // ----------------------------------
+			    // Keeps only business-relevant columns and removes SharePoint system metadata early.
+			    Select_BusinessColumns =
+			        Table.SelectColumns(
+			            Navigation_MetricDefinitionsList,
+			            {
+			                "ID",
+			                "Metric",
+			                "Business definition",
+			                "Why important/What decision does it drive",
+			                "Formula",
+			                "Owner",
+			                "Domain",
+			                "Target",
+			                "Leading/Lagging",
+			                "Direction of good performance",
+			                "Frequency",
+			                "Approval Status",
+			                "Comment",
+			                "Type of KPI",
+			                "Unit of Measure"
+			            },
+			            MissingField.UseNull
+			        ),
+			
+			    // ----------------------------------
+			    // 4. Clean HTML text
+			    // ----------------------------------
+			    // Extracts plain text from the HTML-formatted Business definition column.
+			    Add_BusinessDefinitionCleaned =
+			        Table.AddColumn(
+			            Select_BusinessColumns,
+			            "Business definition Cleaned",
+			            each
+			                let
+			                    // Read the original HTML/text value.
+			                    HtmlValue = [Business definition],
+			
+			                    // Parse the HTML and extract the root text.
+			                    ParsedHtml =
+			                        try
+			                            Html.Table(
+			                                HtmlValue,
+			                                {{"PlainText", ":root"}}
+			                            )
+			                        otherwise
+			                            null,
+			
+			                    // Return the first extracted text value if available.
+			                    ExtractedText =
+			                        if ParsedHtml <> null and Table.RowCount(ParsedHtml) > 0 then
+			                            ParsedHtml{0}[PlainText]
+			                        else
+			                            null,
+			
+			                    // Normalize non-breaking spaces and trim surrounding whitespace.
+			                    CleanedText =
+			                        if ExtractedText <> null then
+			                            Text.Trim(
+			                                Text.Replace(
+			                                    ExtractedText,
+			                                    Character.FromNumber(160),
+			                                    " "
+			                                )
+			                            )
+			                        else
+			                            null
+			                in
+			                    CleanedText,
+			            type text
+			        ),
+			
+			    // ----------------------------------
+			    // 5. Replace original business definition
+			    // ----------------------------------
+			    // Removes the original HTML column and keeps the cleaned plain-text version.
+			    Remove_OriginalBusinessDefinition =
+			        Table.RemoveColumns(
+			            Add_BusinessDefinitionCleaned,
+			            {"Business definition"}
+			        ),
+			
+			    Rename_CleanedBusinessDefinition =
+			        Table.RenameColumns(
+			            Remove_OriginalBusinessDefinition,
+			            {
+			                {
+			                    "Business definition Cleaned",
+			                    "Business definition"
+			                }
+			            }
+			        ),
+			
+			    // ----------------------------------
+			    // 6. Final column order
+			    // ----------------------------------
+			    // Applies the preferred business glossary order.
+			    Reorder_FinalColumns =
+			        Table.ReorderColumns(
+			            Rename_CleanedBusinessDefinition,
+			            {
+			                "ID",
+			                "Metric",
+			                "Business definition",
+			                "Why important/What decision does it drive",
+			                "Formula",
+			                "Owner",
+			                "Domain",
+			                "Target",
+			                "Leading/Lagging",
+			                "Direction of good performance",
+			                "Frequency",
+			                "Approval Status",
+			                "Comment",
+			                "Type of KPI",
+			                "Unit of Measure"
+			            }
+			        ),
+			
+			    // ----------------------------------
+			    // 7. Data type conversion
+			    // ----------------------------------
+			    // Applies explicit data types after all structural transformations are complete.
+			    Convert_DataTypes =
+			        Table.TransformColumnTypes(
+			            Reorder_FinalColumns,
+			            {
+			                {"ID", Int64.Type},
+			                {"Metric", type text},
+			                {"Business definition", type text},
+			                {"Why important/What decision does it drive", type text},
+			                {"Formula", type text},
+			                {"Owner", type text},
+			                {"Domain", type text},
+			                {"Target", type text},
+			                {"Leading/Lagging", type text},
+			                {"Direction of good performance", type text},
+			                {"Frequency", type text},
+			                {"Approval Status", type text},
+			                {"Comment", type text},
+			                {"Type of KPI", type text},
+			                {"Unit of Measure", type text}
+			            }
+			        )
+			in
+			    Convert_DataTypes
+		lineageTag: 2a501181-92a7-4af8-a1dd-04a4857e8fb5
+	
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table
+		
+
+	/// Business definitions of the metrics from the Group Analytics metric definition list.
+	table '_Metric business definition'
+		lineageTag: f9c5fd01-6a14-4afb-803f-70ec34a1454b
+
+		column ID
+			dataType: int64
+			formatString: 0
+			lineageTag: f933c3da-bee3-4b8f-850e-4785e1a79a48
+			summarizeBy: count
+			sourceColumn: ID
+
+			annotation SummarizationSetBy = Automatic
+
+		column Metric
+			dataType: string
+			lineageTag: 3f992c94-88b6-46ae-b062-4c22ee6e1937
+			summarizeBy: none
+			sourceColumn: Metric
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Business definition'
+			dataType: string
+			lineageTag: f5a9e302-161d-4b0c-97ae-749f869ec70c
+			summarizeBy: none
+			sourceColumn: Business definition
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Why important/What decision does it drive'
+			dataType: string
+			lineageTag: 551d87b7-0cdf-4bc3-8d2f-5e0ca3533323
+			summarizeBy: none
+			sourceColumn: Why important/What decision does it drive
+
+			annotation SummarizationSetBy = Automatic
+
+		column Formula
+			dataType: string
+			lineageTag: 267212a0-9364-47cc-99f4-3e9a098f4b28
+			summarizeBy: none
+			sourceColumn: Formula
+
+			annotation SummarizationSetBy = Automatic
+
+		column Owner
+			dataType: string
+			lineageTag: 35048e2f-6b33-47e2-8fa6-4b5ec392f650
+			summarizeBy: none
+			sourceColumn: Owner
+
+			annotation SummarizationSetBy = Automatic
+
+		column Domain
+			dataType: string
+			lineageTag: 5e9b1da5-cc92-4c74-bed6-0a1a2477e3ec
+			summarizeBy: none
+			sourceColumn: Domain
+
+			annotation SummarizationSetBy = Automatic
+
+		column Target
+			dataType: string
+			lineageTag: bfb59fb2-efb9-4862-a2fb-332f07204ae9
+			summarizeBy: none
+			sourceColumn: Target
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Leading/lagging'
+			dataType: string
+			lineageTag: 8cd16407-ba38-42df-ad9f-bbe65f86f0b7
+			summarizeBy: none
+			sourceColumn: Leading/lagging
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Direction of good performance'
+			dataType: string
+			lineageTag: 43856040-08c5-42d9-b947-0f0735c9ec9f
+			summarizeBy: none
+			sourceColumn: Direction of good performance
+
+			annotation SummarizationSetBy = Automatic
+
+		column Frequency
+			dataType: string
+			lineageTag: cc46e60c-44f9-4888-82e6-ca8aab0e34ec
+			summarizeBy: none
+			sourceColumn: Frequency
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Approval status'
+			dataType: string
+			lineageTag: f9d1ec32-ef74-404f-827c-7364b2f02431
+			summarizeBy: none
+			sourceColumn: Approval status
+
+			annotation SummarizationSetBy = Automatic
+
+		column Comment
+			dataType: string
+			lineageTag: 69e7d270-6b4b-4de2-8891-4014b6b9ca4e
+			summarizeBy: none
+			sourceColumn: Comment
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Type of KPI'
+			dataType: string
+			lineageTag: 3e41c97e-3a99-4015-bb77-ae15338ec342
+			summarizeBy: none
+			sourceColumn: Type of KPI
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Unit of measure'
+			dataType: string
+			lineageTag: bc25a9d6-c545-4d85-8d56-a73d9e3a4ed2
+			summarizeBy: none
+			sourceColumn: Unit of measure
+
+			annotation SummarizationSetBy = Automatic
+
+		partition '_Metric business definition' = m
+			mode: import
+			queryGroup: '5. Load to Data Model\Disconnected Tables'
+			source =
+					let
+					    Source = src_sharepoint_analytics_metric_business_definition,
+
+					    // Friendly names (SharePoint list column names stay unchanged)
+					    Renamed_Columns =
+					        Table.RenameColumns(
+					            Source,
+					            {
+					                {"Approval Status", "Approval status"},
+					                {"Unit of Measure", "Unit of measure"},
+					                {"Leading/Lagging", "Leading/lagging"}
+					            }
+					        )
+					in
+					    Renamed_Columns
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table
+
+

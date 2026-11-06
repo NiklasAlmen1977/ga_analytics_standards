@@ -1,0 +1,11 @@
+createOrReplace
+
+	/// Base URL of the Group Analytics metadata SharePoint site. The metadata lists (environments, report info, metric definitions) live on the PROD site for every environment, so keep PROD. Used by the _Report Info, _Metric business definition and _Environment snippets. Apply this snippet first, and only once per model.
+	expression p_analytics_metadata_site_root_path = "https://vitrolifeglobal.sharepoint.com/sites/GroupAnalytics-Infiles-PROD" meta [IsParameterQuery=true, List={"https://vitrolifeglobal.sharepoint.com/sites/GroupAnalytics-Infiles-DEV", "https://vitrolifeglobal.sharepoint.com/sites/GroupAnalytics-Infiles-TEST", "https://vitrolifeglobal.sharepoint.com/sites/GroupAnalytics-Infiles-ACC", "https://vitrolifeglobal.sharepoint.com/sites/GroupAnalytics-Infiles-PROD"}, DefaultValue="https://vitrolifeglobal.sharepoint.com/sites/GroupAnalytics-Infiles-PROD", Type="Text", IsParameterQueryRequired=true]
+		lineageTag: a21e9cc6-1751-4c8b-9529-c66e001d46d0
+		queryGroup: '1. Parameters\1.1 Connection parameters'
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Text
+

@@ -1,0 +1,318 @@
+createOrReplace
+
+	/// Time intelligence for any measure: month, quarter and year to date, previous periods, changes and rolling totals, based on Calendar[Date]. Select an item to apply it to the measures in a visual.
+	table '__Time Intelligence'
+		lineageTag: 40d17eac-0aaf-4fc6-b3fe-4f56be67e6f6
+
+		calculationGroup
+
+			/// Returns the value of the selected base measure without any time manipulation.
+			calculationItem 'Selected metric' = SELECTEDMEASURE( )
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Returns the selected measure for the day before today, ignoring report filters.
+			calculationItem Yesterday =
+					CALCULATE(
+					    SELECTEDMEASURE( ),
+					    FILTER(
+					        ALL( Calendar[Date] ),
+					        Calendar[Date] = TODAY( ) - 1
+					    )
+					)
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Aggregates the selected measure from the start of the month up to the current filter date.
+			calculationItem MTD = TOTALMTD( SELECTEDMEASURE( ), Calendar[Date] )
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Month-to-date total for the same period in the previous year.
+			calculationItem 'MTD PY' =
+					CALCULATE(
+					    TOTALMTD( SELECTEDMEASURE( ), Calendar[Date] ),
+					    SAMEPERIODLASTYEAR( Calendar[Date] )
+					)
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			calculationItem PQ = ```
+					
+					CALCULATE (
+					    SELECTEDMEASURE (), 
+					    PREVIOUSQUARTER (Calendar[Date])
+					)
+					
+					```
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Aggregates the selected measure from the start of the quarter up to the current filter date.
+			calculationItem QTD = TOTALQTD( SELECTEDMEASURE( ), Calendar[Date] )
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Quarter-to-date total for the same period in the previous year.
+			calculationItem 'QTD PY' =
+					CALCULATE(
+					    TOTALQTD( SELECTEDMEASURE( ), Calendar[Date] ),
+					    SAMEPERIODLASTYEAR( Calendar[Date] )
+					)
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Year-to-date total of the selected measure based on the current filter context.
+			calculationItem YTD = TOTALYTD( SELECTEDMEASURE( ), Calendar[Date] )
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Year-to-date total for the same period in the previous year.
+			calculationItem 'YTD PY' =
+					CALCULATE(
+					    TOTALYTD( SELECTEDMEASURE( ), Calendar[Date] ),
+					    SAMEPERIODLASTYEAR( Calendar[Date] )
+					)
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Difference between current and previous year's year-to-date totals.
+			calculationItem 'YTD vs PY-YTD' =
+					VAR _v_current_ytd =
+					    CALCULATE( SELECTEDMEASURE( ), DATESYTD( Calendar[Date] ) )
+					VAR _v_previous_ytd =
+					    CALCULATE(
+					        SELECTEDMEASURE( ),
+					        SAMEPERIODLASTYEAR( DATESYTD( Calendar[Date] ) )
+					    )
+					RETURN
+					    IF( NOT ISBLANK( _v_previous_ytd ), _v_current_ytd - _v_previous_ytd )
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Returns the selected measure shifted back one calendar month relative to the current context.
+			calculationItem PM =
+					
+					CALCULATE(
+					    SELECTEDMEASURE( ),
+					    --DATEADD( Calendar[Date], -1, MONTH )
+					    PREVIOUSMONTH( Calendar[Date] )
+					)
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Difference between the current month and the previous month.
+			calculationItem MoM = ```
+					
+					VAR _v_previous_month_value =
+					    CALCULATE(
+					        SELECTEDMEASURE( ),
+					        DATEADD( Calendar[Date], -1, MONTH )
+					    )
+					VAR _v_current_month_value = 
+					        //CALCULATE(
+					        SELECTEDMEASURE( )--,
+					    //    DATEADD( Calendar[Date], 0, MONTH )
+					    //)
+					RETURN
+					    IF( NOT ISBLANK( _v_previous_month_value ), _v_current_month_value - _v_previous_month_value )
+					```
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Month-over-month percent change.
+			calculationItem 'MoM %' = ```
+					
+					VAR _v_previous_month_value =
+					    CALCULATE(
+					        SELECTEDMEASURE( ),
+					        DATEADD( Calendar[Date], -1, MONTH )
+					    )
+					VAR _v_current_month_value = 
+					        //CALCULATE(
+					        SELECTEDMEASURE( )--,
+					    //    DATEADD( Calendar[Date], 0, MONTH )
+					    //)
+					RETURN
+					    IF( NOT ISBLANK( _v_previous_month_value ), DIVIDE( _v_current_month_value - _v_previous_month_value, _v_previous_month_value ) )
+					```
+
+				formatStringDefinition = "#,0.0%;-#,0.0%;#,0.0%"
+
+			/// Returns the selected measure for the same period one year earlier.
+			calculationItem PY =
+					
+					CALCULATE(
+					    SELECTEDMEASURE( ),
+					    DATEADD( Calendar[Date], -1, YEAR )
+					)
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Year-over-year difference between current and previous year values.
+			calculationItem YoY = ```
+					
+					VAR _v_previous_year_value =
+					    CALCULATE(
+					        SELECTEDMEASURE( ),
+					        DATEADD( Calendar[Date], -1, YEAR )
+					    )
+					VAR _v_current_year_value = 
+					        //CALCULATE(
+					        SELECTEDMEASURE( )--,
+					    //    DATEADD( Calendar[Date], 0, YEAR )
+					    //)
+					RETURN
+					    IF( NOT ISBLANK( _v_previous_year_value ), _v_current_year_value - _v_previous_year_value )
+					```
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Year-over-year percent change of the selected measure.
+			calculationItem 'YoY %' = ```
+					
+					VAR _v_previous_year_value =
+					    CALCULATE(
+					        SELECTEDMEASURE( ),
+					        DATEADD( Calendar[Date], -1, YEAR )
+					    )
+					VAR _v_current_year_value = 
+					        //CALCULATE(
+					        SELECTEDMEASURE( )--,
+					    //    DATEADD( Calendar[Date], 0, YEAR )
+					    //)
+					RETURN
+					    IF( NOT ISBLANK( _v_previous_year_value ), DIVIDE( _v_current_year_value - _v_previous_year_value, _v_previous_year_value ) )
+					```
+
+				formatStringDefinition = "#,0.0%;-#,0.0%;#,0.0%"
+
+			/// Rolling 3-month total ending with the last visible date.
+			calculationItem '3M rolling' =
+					
+					CALCULATE(
+					    SELECTEDMEASURE( ),
+					    DATESINPERIOD(
+					        Calendar[Date],
+					        LASTDATE( Calendar[Date] ),
+					        -3,
+					        MONTH
+					    )
+					)
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Average monthly value over the last 3 months.
+			calculationItem '3M rolling avg' =
+					DIVIDE(
+					    CALCULATE(
+					        SELECTEDMEASURE( ),
+					        DATESINPERIOD(
+					            Calendar[Date],
+					            LASTDATE( Calendar[Date] ),
+					            -3,
+					            MONTH
+					        )
+					    ),
+					    3,
+					    BLANK( )
+					)
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Rolling 6-month total ending with the last visible date.
+			calculationItem '6M rolling' =
+					
+					CALCULATE(
+					    SELECTEDMEASURE( ),
+					    DATESINPERIOD(
+					        Calendar[Date],
+					        LASTDATE( Calendar[Date] ),
+					        -6,
+					        MONTH
+					    )
+					)
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Average monthly value over the last 6 months.
+			calculationItem '6M rolling avg' =
+					
+					DIVIDE(
+					    CALCULATE(
+					        SELECTEDMEASURE( ),
+					        DATESINPERIOD(
+					            Calendar[Date],
+					            LASTDATE( Calendar[Date] ),
+					            -6,
+					            MONTH
+					        )
+					    ),
+					    6,
+					    BLANK( )
+					)
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Rolling 12-month (moving annual) total.
+			calculationItem '12M rolling' =
+					CALCULATE(
+					    SELECTEDMEASURE( ),
+					    DATESINPERIOD(
+					        Calendar[Date],
+					        LASTDATE( Calendar[Date] ),
+					        -1,
+					        YEAR
+					    )
+					)
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Average monthly value over the last 12 months.
+			calculationItem '12M rolling avg' =
+					DIVIDE(
+					    CALCULATE(
+					        SELECTEDMEASURE( ),
+					        DATESINPERIOD(
+					            Calendar[Date],
+					            LASTDATE( Calendar[Date] ),
+					            -12,
+					            MONTH
+					        )
+					    ),
+					    12,
+					    BLANK( )
+					)
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+			/// Cumulative total up to the last available date (defaults to yesterday if today is incomplete).
+			calculationItem 'Accumulated (dynamic)' =
+					VAR _v_max_date =
+					    IF(
+					        MAX( Calendar[Date] ) >= TODAY( ),
+					        TODAY( ) - 1,
+					        MAX( Calendar[Date] )
+					    )
+					RETURN
+					    CALCULATE(
+					        SELECTEDMEASURE( ),
+					        FILTER(
+					            ALL( Calendar[Date] ),
+					            Calendar[Date] <= _v_max_date
+					        )
+					    )
+
+				formatStringDefinition = SELECTEDMEASUREFORMATSTRING( )
+
+		column Calculation
+			dataType: string
+			lineageTag: ffdb2639-36b8-4e5f-91af-306b6b01b3d8
+			sourceColumn: Name
+			sortByColumn: Ordinal
+
+		column Ordinal
+			dataType: int64
+			lineageTag: e7860132-c88e-4ac4-a994-442526b1b62e
+			sourceColumn: Ordinal
+

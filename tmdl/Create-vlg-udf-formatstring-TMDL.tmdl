@@ -1,0 +1,228 @@
+createOrReplace
+
+	/// Dynamic format string generator for comparison values (in value)
+	/// Returns format string with directional indicators based on parameters
+	function 'VLG.FormatString.RelativeToTarget.Numeric.DynamicUnits' =
+			
+			// Dynamic format string generator for comparison values (in value)
+			// Returns format string with directional indicators based on parameters
+			(
+			    // Position of comparison symbol
+			    // Expects "PREFIX" or "SUFFIX"
+			    position: STRING,
+			
+			    // Number of decimal places
+			    // Expects an INT64 value from 0-9
+			    decimal_places: INT64,
+			
+			    // Symbol style - number (1-9) or text:
+			    // 1 or "ARROWS": ↑/↓
+			    // 2 or "TRIANGLES": ▲/▼
+			    // 3 or "PLUSMINUS": +/-
+			    // 4 or "CHEVRONS": ˄/˅
+			    // 5 or "GREENRED": 🟢/🔴
+			    // 6 or "BLUEORANGE": 🔵/🟠
+			    // 7 or "BLOCKARROWS": ⬆/⬇
+			    // 8 or "CHECKCROSS": ✓/✗
+			    // 9 or "NONE": no symbol
+			    symbol: ANYVAL,
+			
+			    // Custom prefix text (optional)
+			    // Enter "" to skip parameter
+			    // Enter SELECTEDVALUE( 'Exchange Rate'[Currency Symbol] ) for dynamic currency conversion
+			    //
+			    // Note: Value is string-safe; no need for """"
+			    custom_prefix: EXPR,
+			
+			    // Custom suffix text (optional)
+			    // Enter "" to skip parameter
+			    // Enter SELECTEDVALUE( 'Exchange Rate'[Currency Symbol] ) for dynamic currency conversion
+			    // Enter " (" & FORMAT ( [PercentMeasure], "0.0%" ) & ")" to add a second value for context
+			    //
+			    // Note: Value is string-safe; no need for """"
+			    custom_suffix: EXPR
+			) =>
+			    VAR _BaseFormat =
+			        VLG.FormatString.DynamicUnits()
+			
+			    VAR _Prefix =
+			        DaxLib.FormatString.Component.MakeStringSafe ( custom_prefix )
+			
+			    VAR _Suffix =
+			        DaxLib.FormatString.Component.MakeStringSafe ( custom_suffix )
+			
+			    VAR _PositiveSymbol =
+			        DaxLib.FormatString.Component.Symbols ( symbol, "POSITIVE" )
+			
+			    VAR _NegativeSymbol =
+			        DaxLib.FormatString.Component.Symbols ( symbol, "NEGATIVE" )
+			
+			    VAR _PositiveFormat =
+			        _Prefix
+			            & SWITCH (
+			                position,
+			                "PREFIX",
+			                    _PositiveSymbol & " " & _BaseFormat,
+			                "SUFFIX",
+			                    _BaseFormat & " " & _PositiveSymbol,
+			                _BaseFormat & " " & _PositiveSymbol
+			            )
+			            & _Suffix
+			
+			    VAR _NegativeFormat =
+			        _Prefix
+			            & SWITCH (
+			                position,
+			                "PREFIX",
+			                    _NegativeSymbol & " " & _BaseFormat,
+			                "SUFFIX",
+			                    _BaseFormat & " " & _NegativeSymbol,
+			                _BaseFormat & " " & _NegativeSymbol
+			            )
+			            & _Suffix
+			
+			    VAR _ZeroFormat =
+			        _Prefix & _BaseFormat & _Suffix
+			
+			    RETURN
+			        _PositiveFormat & ";" & _NegativeFormat
+			            & ";"
+			            & _ZeroFormat
+		lineageTag: 806f35fe-23b2-4102-9843-a004403681c5
+
+
+
+	/// Get comparison symbol based on style and value sign
+	/// Returns appropriate symbol for positive, negative, or zero values
+	function 'DaxLib.FormatString.Component.Symbols' =
+			
+			// Get comparison symbol based on style and value sign
+			// Returns appropriate symbol for positive, negative, or zero values
+			(
+			    // Symbol style - number (1-9) or text:
+			    // 1 or "ARROWS": ↑/↓
+			    // 2 or "TRIANGLES": ▲/▼
+			    // 3 or "PLUSMINUS": +/-
+			    // 4 or "CHEVRONS": ˄/˅
+			    // 5 or "GREENRED": 🟢/🔴
+			    // 6 or "BLUEORANGE": 🔵/🟠
+			    // 7 or "BLOCKARROWS": ⬆/⬇
+			    // 8 or "CHECKCROSS": ✓/✗
+			    // 9 or "NONE": no symbol
+			    symbol_style: ANYVAL,
+			
+			    // Value type: "POSITIVE", "NEGATIVE", or "ZERO"
+			    value_type: STRING
+			)
+			=>
+			    VAR _SymbolCode =
+			        IF ( ISNUMBER ( symbol_style ),
+			            symbol_style,
+			            SWITCH ( UPPER ( symbol_style ),
+			                "ARROWS", 1,
+			                "TRIANGLES", 2,
+			                "PLUSMINUS", 3,
+			                "CHEVRONS", 4,
+			                "GREENRED", 5,
+			                "BLUEORANGE", 6,
+			                "BLOCKARROWS", 7,
+			                "CHECKCROSS", 8,
+			                "NONE", 9,
+			                9
+			            )
+			        )
+			
+			    VAR _Symbol =
+			        SWITCH ( value_type,
+			            "POSITIVE",
+			                SWITCH ( _SymbolCode,
+			                    1, "↑",
+			                    2, "▲",
+			                    3, "+",
+			                    4, "˄",
+			                    5, "🟢",
+			                    6, "🔵",
+			                    7, "⬆",
+			                    8, "✓",
+			                    9, "",
+			                    ""
+			                ),
+			            "NEGATIVE",
+			                SWITCH ( _SymbolCode,
+			                    1, "↓",
+			                    2, "▼",
+			                    3, "-",
+			                    4, "˅",
+			                    5, "🔴",
+			                    6, "🟠",
+			                    7, "⬇",
+			                    8, "✗",
+			                    9, "",
+			                    ""
+			                ),
+			            ""
+			        )
+			
+			    RETURN
+			        _Symbol
+		lineageTag: 4cf50d24-1a68-429b-ad12-21892fd2050a
+
+		extendedProperty TabularEditor_ObjDaxPkgContentHash = B347E7F21E5DE7DDA2083254974D228595A87CE139314D0C8056B4CE1070811D
+
+		extendedProperty TabularEditor_ObjDaxPkgHandle = 1
+
+	
+
+	createOrReplace
+
+	/// Wraps strings in double-quotes to avoid issues with format string interpretation
+	function 'DaxLib.FormatString.Component.MakeStringSafe' =
+			
+			// Wraps strings in double-quotes to avoid issues with format string interpretation
+			(
+			    // The value you want to put in the format string
+			    unsafe_string : STRING
+			)
+			=>
+			    """" & unsafe_string & """"
+		lineageTag: fe4e1228-dfd3-405f-b2a9-2346f44ba02a
+
+		extendedProperty TabularEditor_ObjDaxPkgContentHash = DB480FD5B46A19871433C304F6EBE882B822944F80DA76B4AB07E17ADDD96D26
+
+		extendedProperty TabularEditor_ObjDaxPkgHandle = 1
+
+
+	table _Scale
+		lineageTag: eb7f8165-ee1b-42cd-a61f-6fd2e126e6a3
+
+		column 'Scale state'
+			lineageTag: b8400157-e34c-4114-9627-547300744d79
+			summarizeBy: none
+			isNameInferred
+			sourceColumn: [Scale state]
+
+			annotation SummarizationSetBy = Automatic
+
+		partition _Scale = calculated
+			mode: import
+			source =
+					
+					DATATABLE(
+					    "Scale state", STRING,
+					    {
+					        { "On" },
+					        { "Off" }
+					    }
+					)
+
+		annotation PBI_Id = 4cad17baa6f7474180d88eb2689c2d1f
+
+
+
+
+
+
+
+
+		
+

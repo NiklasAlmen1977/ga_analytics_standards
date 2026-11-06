@@ -1,0 +1,114 @@
+metadata:
+  name: "Group Analytics Code Style for DAX and Power Query M"
+  owner: "Group Analytics"
+  version: "1.0.0"
+  status: "draft"
+  domain: "Power BI"
+
+# Detailed style rules for DAX and Power Query M code.
+# The enforceable rules are STD_DAX_CODE_STYLE, STD_PQ_CODE_STYLE and
+# STD_PQ_NAMED_AND_COMMENTED_STEPS in standards.yaml (principle P017).
+# Object names (tables, columns, measures, queries, parameters) follow
+# group_analytics_naming_conventions.md; this file covers the code inside them.
+
+general:
+  - "Write code and comments in English."
+  - "Comments explain why: the business rule, an assumption or a non-obvious choice. Do not repeat what the code already says."
+  - "Remove commented-out code before merging to main. Git keeps the history."
+  - "Keep secrets, passwords and personal paths out of code. Use parameters for environment values (STD_PQ_PARAMETERS_FOR_CONNECTIONS)."
+  - "Indent with 4 spaces inside an expression. TMDL adds its own tab indentation around the expression; keep it."
+  - "Existing code that does not follow these rules is updated when it is changed for another reason. Do not reformat a whole model only for style."
+
+dax:
+  formatting:
+    reference: "DAX Formatter long-line style (daxformatter.com, SQLBI)"
+    rules:
+      - "Start the expression on the line after the measure name, so the first line in the DAX editor is only the name and = (for example Net sales =) and the code starts on line 2. In TMDL the expression starts with an empty line. This applies to every measure, also one-liners, and makes measures easier to read and review."
+      - "Write DAX functions and keywords in upper case: CALCULATE, VAR, RETURN, TRUE( )."
+      - "Put a space inside the parentheses of a function call: SUM( 'Sales*'[Amount] ), TRUE( )."
+      - "Write column references with the table name ('Table'[Column]) and measure references without it ([Measure])."
+      - "A call that fits on one line stays on one line. Otherwise put each argument on its own line, indented 4 spaces, with the closing parenthesis on its own line under the function name."
+      - "Put VAR and RETURN at the start of the line. The expression after RETURN goes on the next line, indented 4 spaces."
+      - "In long conditions, start each new line with the operator (&&, ||)."
+      - "Use a numeric result with a format string or dynamic format string. Use FORMAT only when the measure is meant to return text."
+  variables:
+    rules:
+      - "Prefix every variable with _v_ followed by a descriptive snake_case name: _v_selected_company, _v_period_end_date."
+      - "Use one variable per calculation stage, so each stage can be read and tested on its own."
+      - "Name the value that is returned _v_result when the calculation has more than one stage."
+      - "Do not use names such as _v_x, _v_y, _v_temp or _v_1."
+  comments:
+    rules:
+      - "Use // for comments. Do not use --."
+      - "Put a comment on its own line above the code it explains."
+      - "A non-trivial measure starts with a short comment on what it calculates and which filters it changes. The business meaning goes in the measure description (STD_VISIBLE_MEASURES_HAVE_DESCRIPTIONS)."
+  example: |
+    Balance sheet amount =
+    // Balance sheet: all postings up to the end of the selected period.
+    // Removes the Calendar filter so postings before the first Calendar date are included.
+    VAR _v_period_end_date = MAX( 'Calendar'[Date] )
+    VAR _v_result =
+        CALCULATE(
+            [Amount],
+            REMOVEFILTERS( 'Calendar' ),
+            'GL Balance Details*'[Posting date] <= _v_period_end_date
+        )
+    RETURN
+        _v_result
+
+power_query:
+  formatting:
+    rules:
+      - "Write a query as one let ... in block, with one step per line or block and a blank line between logical stages."
+      - "When a function call has more than one argument and does not fit on one line, put each argument on its own line, indented 4 spaces."
+      - "Put long lists (columns, renames, types) one item per line."
+      - "Set explicit types when you add or change columns (Table.AddColumn with a type, Table.TransformColumnTypes)."
+      - "End the query with in followed by the last step name on the next line, indented 4 spaces."
+      - "Keep steps that fold to the source before steps that break folding, where the logic allows it."
+  step_names:
+    pattern: "Verb_Object"
+    rules:
+      - "Start with a verb in the imperative, followed by what the step works on. Separate the words with underscores and start each word with a capital letter: Filter_Active_Rows."
+      - "Do not use spaces, so names never need quotes: Select_Columns, not #\"Selected Columns\"."
+      - "Name the step after what it does, not after the button that created it."
+      - "The first step is Source. A step that only navigates to a table or list item may be called Navigation."
+      - "Step names are unique within the query."
+    verbs: ["Select", "Remove", "Keep", "Rename", "Reorder", "Filter", "Add", "Change", "Replace", "Merge", "Append", "Expand", "Group", "Pivot", "Unpivot", "Sort", "Split", "Combine", "Set", "Clean"]
+    examples:
+      good: ["Source", "Navigation", "Select_Columns", "Filter_Active_Rows", "Change_Column_Types", "Rename_Columns", "Merge_Customer", "Expand_Customer_Columns", "Add_Month_Name"]
+      avoid: ["#\"Filtered Rows 1\"", "#\"Changed Type\"", "Custom1", "Step2", "Removed_UnusedColumns (past tense)"]
+  comments:
+    rules:
+      - "Use // for comments inside the query."
+      - "Start each logical stage with a comment block that explains why the stage exists:"
+      - "Put a short comment above any step whose reason is not obvious from its name."
+      - "Give every query a description (/// in TMDL, or the query description in Power BI Desktop) that states the source, the purpose and whether the query is loaded."
+    stage_comment_block: |
+      // ----------------------------------
+      // Filter to the active environment
+      // The manual choice wins over automatic detection
+      // ----------------------------------
+  example: |
+    let
+        Source = src_validation_aaro_integration_gl_balance_detail,
+
+        // ----------------------------------
+        // Keep the columns the report uses
+        // ----------------------------------
+        Select_Columns =
+            Table.SelectColumns(
+                Source,
+                {"company_code", "posting_date", "global_account_no", "amount"}
+            ),
+
+        // Amounts are reported per company in its own currency
+        Change_Column_Types =
+            Table.TransformColumnTypes(
+                Select_Columns,
+                {
+                    {"posting_date", type date},
+                    {"amount", Currency.Type}
+                }
+            )
+    in
+        Change_Column_Types

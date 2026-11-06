@@ -1,0 +1,259 @@
+createOrReplace
+
+	/// Base connection to the analytics environments list on the Group Analytics metadata SharePoint site.
+	expression src_sharepoint_analytics_environment =
+			let
+			    // ----------------------------------
+			    // Connect to SharePoint
+			    // Exposes all lists and libraries as tables
+			    // ----------------------------------
+			    Source =
+			        SharePoint.Tables(
+			            p_analytics_metadata_site_root_path,
+			            [Implementation = "2.0", ViewMode = "All"]
+			        ),
+
+			    // ----------------------------------
+			    // Select Microsoft List by List Id
+			    // This list defines available analytics environments
+			    // ----------------------------------
+			    ListItems_AnalyticsEnvironments =
+			        Source{[Id = "ab9f8ca7-d3f3-4e5e-ab62-91e6ed70f659"]}[Items],
+
+			    // ----------------------------------
+			    // Remove SharePoint system columns
+			    // Keep only business-relevant environment attributes
+			    // ----------------------------------
+			    Removed_UnusedColumns =
+			        Table.RemoveColumns(
+			            ListItems_AnalyticsEnvironments,
+			            {
+			                "Created",
+			                "Modified",
+			                "Modified By",
+			                "Title",
+			                "Color Tag",
+			                "Compliance Asset Id",
+			                "ID",
+			                "Content Type",
+			                "Created By",
+			                "Version",
+			                "Attachments",
+			                "Edit",
+			                "Type",
+			                "Item Child Count",
+			                "Folder Child Count",
+			                "Label setting",
+			                "Retention label",
+			                "Retention label Applied",
+			                "Label applied by",
+			                "Item is a Record",
+			                "App Created By",
+			                "App Modified By"
+			            }
+			        )
+			in
+			    Removed_UnusedColumns
+		lineageTag: 342fa5c9-a6e9-4382-bfc6-ca61989eb6f0
+		queryGroup: '3. Source'
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table
+
+	/// The environment the model is connected to, as one row with friendly column names.
+	expression stg_analytics_environment =
+			let
+			    Source = src_sharepoint_analytics_environment,
+
+			    // ----------------------------------
+			    // Filter to the active environment:
+			    // the manual choice, or automatic detection from the model's
+			    // own connection parameters, in this order:
+			    // 1. Fabric SQL analytics endpoint (SqlEndpoint)
+			    // 2. On-premises data warehouse server (Datawarehouse_ServerHostName)
+			    // 3. Infiles SharePoint site (SharePoint_SiteRoot_Path)
+			    // The metadata site itself is always PROD, so it cannot be used.
+			    // ----------------------------------
+			    Matched_SqlEndpoint =
+			        Table.SelectRows(Source, each [SqlEndpoint] <> null and [SqlEndpoint] = p_sql_endpoint_server_host_name),
+			    Matched_DatawarehouseServer =
+			        Table.SelectRows(Source, each [Datawarehouse_ServerHostName] <> null and [Datawarehouse_ServerHostName] = p_datawarehouse_server_host_name),
+			    Matched_SharePointSite =
+			        Table.SelectRows(Source, each [SharePoint_SiteRoot_Path] = p_sharepoint_site_root_path),
+
+			    Filtered_ToSelectedEnvironment =
+			        if p_environment_manual <> "Automatic environment detection" then
+			            Table.SelectRows(Source, each [Environment] = p_environment_manual)
+			        else if not Table.IsEmpty(Matched_SqlEndpoint) then
+			            Matched_SqlEndpoint
+			        else if not Table.IsEmpty(Matched_DatawarehouseServer) then
+			            Matched_DatawarehouseServer
+			        else
+			            Matched_SharePointSite,
+
+			    // ----------------------------------
+			    // Friendly names (SharePoint list column names stay unchanged)
+			    // ----------------------------------
+			    Renamed_Columns =
+			        Table.RenameColumns(
+			            Filtered_ToSelectedEnvironment,
+			            {
+			                {"DisplayName", "Display name"},
+			                {"BackgroundHex", "Background hex"},
+			                {"TextHex", "Text hex"},
+			                {"IsProd", "Is prod"},
+			                {"SharePoint_SiteRoot_Path", "SharePoint site root path"},
+			                {"Datawarehouse_ServerHostName", "Data warehouse server host name"},
+			                {"SqlEndpoint", "SQL endpoint server host name"},
+			                {"SqlDatabaseName", "SQL database name"}
+			            }
+			        )
+			in
+			    Renamed_Columns
+		lineageTag: 539a527f-833a-45b2-afae-b1575d264cdb
+		queryGroup: '4. Stage'
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table
+
+	/// Overrides the automatic environment detection. Keep "Automatic environment detection" unless you test against another environment.
+	expression p_environment_manual = "Automatic environment detection" meta [IsParameterQuery=true, List={"Automatic environment detection", "DEV", "TEST", "ACC", "PROD"}, DefaultValue="Automatic environment detection", Type="Text", IsParameterQueryRequired=true]
+		lineageTag: 887a2607-561a-4681-ab48-4a7f4c2b9530
+		queryGroup: '1. Parameters\1.2 Parameters'
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Text
+
+	/// The environment the model is connected to (DEV, TEST or ACC, PROD; TEST is being replaced by ACC), with the colours for the environment banner.
+	table _Environment
+		lineageTag: 26248aca-4c09-4e1c-a75b-e88faaac2384
+
+		/// Environment banner text: a coloured marker and the environment name for DEV, TEST and ACC, empty in production.
+		measure 'Label - Connected environment' =
+				
+				VAR _v_environment = SELECTEDVALUE( _Environment[Display name] )
+				RETURN
+				    SWITCH(
+				        TRUE( ),
+				        _v_environment = "DEV", "🔴DEV",
+				        _v_environment = "TEST", "🟠TEST",
+				        _v_environment = "ACC", "🟠ACC",
+				        ""
+				    )
+			displayFolder: .Environment
+			lineageTag: aa71ec65-c240-4cfd-9f3c-45e02700246d
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		/// Background colour of the environment banner.
+		measure '_cf_Environment background' =
+				
+				SELECTEDVALUE( _Environment[Background hex] )
+			isHidden
+			displayFolder: .Environment
+			lineageTag: 78280e91-a124-4c46-8cbb-82606c7a66aa
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		/// Text colour of the environment banner.
+		measure '_cf_Environment text' =
+				
+				SELECTEDVALUE( _Environment[Text hex] )
+			isHidden
+			displayFolder: .Environment
+			lineageTag: 85bf3bc9-b3f8-4310-a3a0-74c622cd769a
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		column Environment
+			dataType: string
+			lineageTag: dcbf89f1-d0b4-4413-8927-91c2e5bd7f16
+			summarizeBy: none
+			sourceColumn: Environment
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Display name'
+			dataType: string
+			lineageTag: fc0de1cf-40cf-490a-85fb-21f15ea42cbb
+			summarizeBy: none
+			sourceColumn: Display name
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Background hex'
+			dataType: string
+			lineageTag: ec30e7e2-da70-48b1-a337-39a9200d4321
+			summarizeBy: none
+			sourceColumn: Background hex
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Text hex'
+			dataType: string
+			lineageTag: 7e16a76c-6764-4442-9f72-6677037ff961
+			summarizeBy: none
+			sourceColumn: Text hex
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Is prod'
+			dataType: boolean
+			formatString: """TRUE"";""TRUE"";""FALSE"""
+			lineageTag: b2cf5ad1-9232-4680-9ab7-6c63b9be227d
+			summarizeBy: none
+			sourceColumn: Is prod
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'SharePoint site root path'
+			dataType: string
+			lineageTag: 7256f54d-a75f-4db8-9695-4525288cb829
+			summarizeBy: none
+			sourceColumn: SharePoint site root path
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Host name of the on-premises SQL Server data warehouse for the environment (the value of p_datawarehouse_server_host_name).
+		column 'Data warehouse server host name'
+			dataType: string
+			lineageTag: 8f11a248-2bf2-421c-b5b5-4fa0caba976c
+			summarizeBy: none
+			sourceColumn: Data warehouse server host name
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Host name of the Fabric SQL analytics endpoint for the environment (the value of p_sql_endpoint_server_host_name).
+		column 'SQL endpoint server host name'
+			dataType: string
+			lineageTag: 2c7e9b14-5f3a-4d86-b0e2-9a4c1d7f3e58
+			summarizeBy: none
+			sourceColumn: SQL endpoint server host name
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Database name on the SQL analytics endpoint for the environment, for example the lakehouse name.
+		column 'SQL database name'
+			dataType: string
+			lineageTag: 6f0a3d8e-4b21-4c97-8e5d-1a9b7c2e4f36
+			summarizeBy: none
+			sourceColumn: SQL database name
+
+			annotation SummarizationSetBy = Automatic
+
+		partition _Environment = m
+			mode: import
+			queryGroup: '5. Load to Data Model\Disconnected Tables'
+			source =
+					let
+					    Source = stg_analytics_environment
+					in
+					    Source
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table
+

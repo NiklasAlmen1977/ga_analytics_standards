@@ -1,0 +1,75 @@
+createOrReplace
+
+	// Additive: adds the start page, header and footer label measures to the existing _Helpers table of the template.
+	// Used by the welcome card on the start page (Welcome user, Your access), the info line (Label - Instructions)
+	// and the footer card (Label - Footer ...) in report-design.yaml.
+	// To do in each project: point 'Label - Footer last date' at the load date of the fact table, and
+	// 'Your access' at the RLS dimension when the model has row-level security.
+	ref table _Helpers
+
+		/// Greeting with the user name taken from the user's sign-in, for example Welcome JANE.DOE!
+		measure 'Welcome user' =
+				
+				VAR _v_user = USERPRINCIPALNAME( )
+				RETURN
+				    "Welcome " & UPPER( LEFT( _v_user, SEARCH( "@", _v_user, 1, LEN( _v_user ) + 1 ) - 1 ) ) & "!"
+			isHidden
+			displayFolder: .Report
+			lineageTag: f0d531ce-5235-42fc-bc6b-032be10a50a0
+
+		/// What the signed-in user can see through row-level security, shown on the start page. Template placeholder: replace "All data" with the RLS dimension, for example CONCATENATEX( VALUES( 'Company'[Company name] ), 'Company'[Company name], ", " ).
+		measure 'Your access' =
+				
+				"All data"
+			isHidden
+			displayFolder: .Report
+			lineageTag: 7d982a7b-d30a-4bf5-b652-f10a36a379c4
+
+		/// The signed-in user for the footer, for example JANE.DOE.
+		measure 'Label - Footer user' =
+				
+				VAR _v_user = USERPRINCIPALNAME( )
+				VAR _v_result = UPPER( LEFT( _v_user, SEARCH( "@", _v_user, 1, LEN( _v_user ) + 1 ) - 1 ) )
+				RETURN
+				    _v_result
+			displayFolder: .Report\.Footer
+			lineageTag: 7f72c6b5-9f7f-4312-9d6a-cf55f996e32e
+
+		/// The selected period for the footer, for example 2026-09-01 – 2026-09-30, or one date.
+		measure 'Label - Footer period' =
+				
+				VAR _v_first_date = MIN( 'Calendar'[Date] )
+				VAR _v_last_date = MAX( 'Calendar'[Date] )
+				VAR _v_result =
+				    IF(
+				        _v_first_date = _v_last_date,
+				        FORMAT( _v_first_date, "YYYY-MM-DD" ),
+				        FORMAT( _v_first_date, "YYYY-MM-DD" ) & " – " & FORMAT( _v_last_date, "YYYY-MM-DD" )
+				    )
+				RETURN
+				    _v_result
+			displayFolder: .Report\.Footer
+			lineageTag: 1ddc1c2d-3e80-4edf-beec-fa41583cba00
+
+		/// The last date loaded in the report for the footer, regardless of the period selected.
+		/// To do in each project: replace the placeholder with the commented code and point it at the load date in the fact table.
+		measure 'Label - Footer last date' =
+				
+				VAR _v_todo_message = "🔴 To do: point Label - Footer last date at the fact table"
+				// VAR _v_last_date =
+				//     CALCULATE(
+				//         MAX( '<Fact table>'[<Load date column>] ),   -- the date in the fact table that shows the load date
+				//         REMOVEFILTERS( 'Calendar' )
+				//     )
+				// VAR _v_result = FORMAT( _v_last_date, "YYYY-MM-DD" )
+				RETURN
+				    _v_todo_message
+			displayFolder: .Report\.Footer
+			lineageTag: f1965270-fd58-4d15-9474-5fab297d3b12
+
+		/// General instructions for the page header: how to use the slicers, the visuals and the filter pane.
+		measure 'Label - Instructions' =
+				
+				"Choose in the slicers  ·  click a bar or row to filter the page  ·  more filters in the filter pane"
+			displayFolder: .Report\.Header
+			lineageTag: 38fe17db-c563-4f70-9b02-3c36167bcf40

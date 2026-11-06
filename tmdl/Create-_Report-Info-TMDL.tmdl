@@ -1,0 +1,238 @@
+createOrReplace
+
+	/// Name of this report, used to select its row in the report information list.
+	expression p_report_name = "Report name" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+		lineageTag: 3b0d6f0e-6f39-4d0c-9b1f-2a3c6e1d9a41
+		queryGroup: '1. Parameters\1.2 Parameters'
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Text
+
+	/// Name of this semantic model, used to select its row in the report information list.
+	expression p_semantic_model_name = "Semantic model name" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+		lineageTag: 8c4e2a71-5d93-4f0b-a6e2-7b19c0d4e8f2
+		queryGroup: '1. Parameters\1.2 Parameters'
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Text
+
+	/// Base connection to the report information list on the Group Analytics metadata SharePoint site, filtered to this report or semantic model.
+	expression src_sharepoint_analytics_report_info =
+			let
+			    // ----------------------------------
+			    // Connect to SharePoint
+			    // Exposes all lists and libraries as tables
+			    // ----------------------------------
+			    Source =
+			        SharePoint.Tables(
+			            p_analytics_metadata_site_root_path,
+			            [Implementation = "2.0", ViewMode = "All"]
+			        ),
+			
+			    // ----------------------------------
+			    // Select Microsoft List by List Id
+			    // Contains report and semantic model metadata
+			    // ----------------------------------
+			    ListItems_AnalyticsReportInfo =
+			        Source{[Id = "c567f6e5-621c-4d2b-8968-245deee1f232"]}[Items],
+			
+			    // ----------------------------------
+			    // Remove SharePoint system columns
+			    // Keep only report metadata fields
+			    // ----------------------------------
+			    Removed_UnusedColumns =
+			        Table.RemoveColumns(
+			            ListItems_AnalyticsReportInfo,
+			            {
+			                "Created By",
+			                "Modified",
+			                "Modified By",
+			                "Title",
+			                "Color Tag",
+			                "Compliance Asset Id",
+			                "ID",
+			                "Content Type",
+			                "Created",
+			                "Version",
+			                "Attachments",
+			                "Edit",
+			                "Type",
+			                "Item Child Count",
+			                "Folder Child Count",
+			                "Label setting",
+			                "Retention label",
+			                "Retention label Applied",
+			                "Label applied by",
+			                "Item is a Record",
+			                "App Created By",
+			                "App Modified By"
+			            }
+			        ),
+			
+			    // ----------------------------------
+			    // Filter to the row of this report on this semantic model
+			    // Several reports can use the same semantic model, so only the
+			    // combination of both names is unique. Exact match: "Sales" must not
+			    // also select "Sales overview". Set p_report_name and p_semantic_model_name.
+			    // ----------------------------------
+			    Filtered_ToSelectedReportAndModel =
+			        Table.SelectRows(
+			            Removed_UnusedColumns,
+			            each [Report] = p_report_name
+			                and [Semantic model] = p_semantic_model_name
+			        )
+			in
+			    // ----------------------------------
+			    // Output
+			    // Filtered report metadata table
+			    // ----------------------------------
+			    Filtered_ToSelectedReportAndModel
+		lineageTag: f1c77707-314c-4abb-beb4-76c069b12848
+		queryGroup: '3. Source'
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table
+
+	/// Report metadata shown on the Definition page: this report's row in the MS list Analytics Report Info.
+	table '_Report Info'
+		lineageTag: 7d937545-6493-4cf1-816d-0813ea7d1d12
+
+		/// Owner of the report or semantic model: the contact for questions and changes.
+		column 'Report owner'
+			dataType: string
+			lineageTag: 60b3e9e7-74b9-4d4e-8c91-9fed5fd948d9
+			summarizeBy: none
+			sourceColumn: Report owner
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Target owner of the report or semantic model, as registered in Analytics Report Info.
+		column 'Target owner'
+			dataType: string
+			lineageTag: 4264fa0f-8e1d-493e-b835-b77b156b6847
+			summarizeBy: none
+			sourceColumn: Target owner
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Report name in Analytics Report Info; selects this model's row with p_report_name.
+		column Report
+			dataType: string
+			lineageTag: 30311972-3b21-412e-83bd-81df8e0f0289
+			summarizeBy: none
+			sourceColumn: Report
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Semantic model name in Analytics Report Info; selects this model's row with p_semantic_model_name.
+		column 'Semantic model'
+			dataType: string
+			lineageTag: 47d0ecf3-4d3c-4a68-81c5-ef0565f43c4c
+			summarizeBy: none
+			sourceColumn: Semantic model
+
+			annotation SummarizationSetBy = Automatic
+
+		/// How often the data is refreshed.
+		column 'Report refresh frequency'
+			dataType: string
+			lineageTag: 8d9cbede-da8e-4527-b6d6-df363ea822d2
+			summarizeBy: none
+			sourceColumn: Report refresh frequency
+
+			annotation SummarizationSetBy = Automatic
+
+		/// What the report shows and who it is for.
+		column 'Report overview'
+			dataType: string
+			lineageTag: ba2b9c38-3ef9-4de8-aff3-89f912c66e31
+			summarizeBy: none
+			sourceColumn: Report overview
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Short description of the data model and its sources.
+		column 'Data model description'
+			dataType: string
+			lineageTag: ae5d2557-4dfd-4390-a687-5350c8937471
+			summarizeBy: none
+			sourceColumn: Data model description
+
+			annotation SummarizationSetBy = Automatic
+
+		/// What to do when the report needs to change.
+		column 'Refinement needed?'
+			dataType: string
+			lineageTag: ae1f0a8e-91c0-4446-9e9f-9611e30552f2
+			summarizeBy: none
+			sourceColumn: Refinement needed?
+
+			annotation SummarizationSetBy = Automatic
+
+		/// What to do when you find an error.
+		column 'Found error?'
+			dataType: string
+			lineageTag: 953d7e64-bf2c-4158-8537-d573458ba8fa
+			summarizeBy: none
+			sourceColumn: Found error?
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Developer who maintains the report or semantic model.
+		column 'Developer responsible'
+			dataType: string
+			lineageTag: b5d5f177-d1fc-48e0-9ce3-d95cfadd13cf
+			summarizeBy: none
+			sourceColumn: Developer responsible
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Message about the report or semantic model, shown to users when it is not empty.
+		column Message
+			dataType: string
+			lineageTag: aaae5fea-9bd3-4172-a95d-f4b552d6831a
+			summarizeBy: none
+			sourceColumn: Message
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Link to the data product documentation (PDF of docs/<semantic model name>.md in the Group Analytics Data Product Documentation folder), from the list column Documentation link. Shown as a link on the Definition page.
+		column 'Documentation link'
+			dataType: string
+			dataCategory: WebUrl
+			lineageTag: 5f75a036-556a-4177-92ae-70c0751ff135
+			summarizeBy: none
+			sourceColumn: Documentation link
+
+			annotation SummarizationSetBy = Automatic
+
+		partition '_Report Info' = m
+			mode: import
+			source =
+					let
+					    Source = src_sharepoint_analytics_report_info,
+
+					    // Host of the SharePoint tenant, for example https://vitrolifeglobal.sharepoint.com
+					    Get_SharePoint_Host = Text.BeforeDelimiter(p_analytics_metadata_site_root_path, "/sites/"),
+
+					    // A SharePoint hyperlink column can arrive as a record with Url and Description: keep the Url.
+					    // A link to the same tenant can arrive relative (/:b:/r/sites/...): add the host, so Power BI shows a clickable link.
+					    Documentation_Link_As_Text =
+					        Table.TransformColumns(
+					            Source,
+					            {{"Documentation link", each
+					                let
+					                    Get_Url = if _ is record then Record.FieldOrDefault(_, "Url", null) else _
+					                in
+					                    if Get_Url is text and Text.StartsWith(Get_Url, "/") then Get_SharePoint_Host & Get_Url else Get_Url,
+					              type text}}
+					        )
+					in
+					    Documentation_Link_As_Text
+
+		annotation PBI_ResultType = Table
+
+		annotation PBI_NavigationStepName = Navigation
